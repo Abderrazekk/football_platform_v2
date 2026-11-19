@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+
+# Django
+db.sqlite3
+db.sqlite3-journal
+staticfiles/
+
+# Environment
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data — uncomment if raw/processed files get large
+# data/raw/
+# data/processed/
+
+# ML artifacts — uncomment to keep models out of Git
+# ml/artifacts/models/*.joblib
