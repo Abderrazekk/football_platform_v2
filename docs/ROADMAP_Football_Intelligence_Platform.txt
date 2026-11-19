@@ -1,0 +1,798 @@
+==============================================================================
+  FOOTBALL INTELLIGENCE PLATFORM - PROJECT ROADMAP  (v2.0 - UPDATED)
+  Django + Machine Learning | Premier League 2020-21 -> 2026-27
+  Students: Abderazek BEL HADJ MBAREK & Ghazy Manai
+  Tekup | ING-4-J-SDIAF-B | 2026-2027
+  Aligned with: Cahier des charges v2.0 (November 2026)
+==============================================================================
+
+WHAT CHANGED COMPARED TO THE PREVIOUS ROADMAP
+---------------------------------------------
+1. SIMPLE CODE rule: we are students, so all code must stay simple, short and
+   easy to explain at the defense (see "CODING RULES" below).
+2. ONE FILE PER ML STEP: ml/match_model/01_...py to 10_...py (loading,
+   exploration, preprocessing, features, split, training, best-model choice,
+   stacking, evaluation, final save). Same idea for player and season models.
+3. STACKING of the 2 best models (new step 08).
+4. NEW SPLIT: simple chronological split Train 2020-24 / Validation 2024-25 /
+   Test 2025-26. The walk-forward becomes an OPTIONAL extra script (11).
+5. NEW CRUD FEATURE: "Mes equipes favorites" (new Django app: favorites).
+6. New project structure (ml/ subfolders, tests/ folder, favorites app,
+   .env.example) - see Phase 0.
+7. Team of two: a short TEAM WORKFLOW section was added.
+
+HOW TO USE THIS FILE
+--------------------
+- Work phase by phase. Do NOT start a phase before the previous one is "Done".
+- Each phase has: Goal, Tasks (checkboxes), Deliverables, Definition of Done.
+- Tick the boxes yourself: replace [ ] with [x].
+- Priorities: [M] must (MVP) | [S] should | [C] could (bonus, cut first if late)
+- Timeline assumes 10 weeks. Adjust it to your real deadline.
+
+OVERVIEW
+--------
+Phase 0  - Setup & project skeleton ............ Days 1-2
+Phase 1  - Data loading & exploration (ML 01-02) Week 1
+Phase 2  - Preprocessing, unification, SQLite .. Week 2   (ML 03)
+Phase 3  - Feature engineering (match model) ... Week 3   (ML 04)
+Phase 4  - Match model: split, train, select,
+           stacking, evaluate, save ............ Week 4   (ML 05-10)
+Phase 5  - Django MVP + CRUD favorites ......... Weeks 5-6 (MILESTONE: MVP freeze)
+Phase 6  - Team analysis & dashboards .......... Week 6-7
+Phase 7  - Player models & player features ..... Weeks 7-8
+Phase 8  - Season predictions & best squad ..... Week 9
+Phase 9  - Polish, tests, security, docs ....... Week 10 (first half)
+Phase 10 - Report, demo & defense .............. Week 10 (second half)
+
+GOLDEN RULES (read them again at the start of every week)
+---------------------------------------------------------
+1. A small finished project beats a huge unfinished one. MVP first.
+2. Never train a model inside Django. Train in ml/, save .joblib, load in Django.
+3. No data leakage: a match feature may only use data from BEFORE that match.
+4. Always split by time (train 2020-24 / validation 2024-25 / test 2025-26),
+   never randomly. The test set is used ONCE, at the very end.
+5. Always compare to baselines. A model without a baseline means nothing.
+6. Commit to Git at least once per working day, with a clear message.
+7. Be honest about accuracy: 50-55% on 1/X/2 is already a good result.
+8. Notebooks for experiments, .py scripts for final code.
+9. SIMPLE CODE: if you cannot explain a line in 10 seconds, rewrite it.
+10. One ML step = one file. Each file reads one input and writes one output.
+
+CODING RULES (student-simple code)  -> applies to ML and Django
+---------------------------------------------------------------
+DO
+  - Short functions (about 20 lines max), one job per function.
+  - Clear names: train_matches, home_elo, load_clean_matches().
+  - Classic for loops and if statements, step by step.
+  - A header comment at the top of EVERY script:
+        # FILE   : 03_preprocessing.py
+        # ROLE   : clean the raw matches (names, dates, missing values)
+        # INPUT  : data/processed/all_matches_raw.csv
+        # OUTPUT : data/processed/clean_matches.csv
+        # RUN    : python ml/match_model/03_preprocessing.py
+  - Put paths, SEED = 42, season lists and column lists in ml/config.py.
+  - Put small shared helpers in ml/utils.py (load_csv, save_json, metrics).
+  - Print simple messages while running ("Loaded 2660 matches").
+  - Django: function-based views, logic in services.py, thin views.
+AVOID
+  - Metaclasses, custom decorators, nested comprehensions, lambda chains,
+    multiple inheritance, clever one-liners, over-engineering.
+  - Extra libraries: stay with pandas, numpy, scikit-learn, xgboost, joblib,
+    matplotlib, pulp.
+TIP (how scripts find ml/config.py when run from the project root)
+  Put these lines at the top of each script, then write "import config":
+        import sys
+        from pathlib import Path
+        sys.path.append(str(Path(__file__).resolve().parent.parent))
+
+TEAM WORKFLOW (2 students - ignore this section if you work alone)
+-------------------------------------------------------------------
+- Suggested split: Student A = ml/ (steps 01-10, player, season models);
+  Student B = Django apps (accounts, matches, favorites, templates, tests).
+  Shared: data import, services layer, tests, report, slides.
+- FIX THE CONTRACT EARLY: write a STUB ml/predict.py in Phase 0 with the final
+  function names (predict_match, predict_player_points, get_best_xi) returning
+  fake but valid values. Student B can then build Django before the real model
+  exists; Student A replaces the stub later without changing the signatures.
+- Git: main branch always works. One branch per feature (feature/favorites,
+  feature/match-model). Merge by pull request, the other student reviews.
+- 15-minute sync meeting twice a week; update the board after each meeting.
+- Both students must be able to explain the WHOLE project at the defense.
+
+
+==============================================================================
+PHASE 0 - SETUP & PROJECT SKELETON            (Days 1-2)
+==============================================================================
+GOAL: a clean, empty project that runs, with Git, a virtual environment and the
+data in place.
+
+TASKS
+[ ] [M] Install/verify: Python 3.11+ (3.10 minimum), Git, VS Code (or PyCharm),
+        Jupyter (pip install notebook), DB Browser for SQLite (optional).
+[ ] [M] Create the project folder:  football_platform/
+[ ] [M] Create the virtual environment:
+          python -m venv .venv
+          Windows:  .venv\Scripts\activate
+          Linux/Mac: source .venv/bin/activate
+[ ] [M] Install base packages and freeze them:
+          pip install django pandas numpy scikit-learn xgboost joblib
+                      matplotlib pulp jupyter pytest python-dotenv
+                      djangorestframework plotly
+          pip freeze > requirements.txt
+[ ] [M] Create the Django project in the current folder:
+          django-admin startproject config .
+[ ] [M] Create the apps inside an apps/ folder (create the folder first, add an
+        empty __init__.py, then create one sub-folder per app):
+          Windows:   mkdir apps\core apps\accounts apps\matches apps\favorites
+                           apps\players apps\season
+          Linux/Mac: mkdir -p apps/{core,accounts,matches,favorites,players,season}
+          python manage.py startapp core apps/core
+          python manage.py startapp accounts apps/accounts
+          python manage.py startapp matches apps/matches
+          python manage.py startapp favorites apps/favorites
+          python manage.py startapp players apps/players
+          python manage.py startapp season apps/season
+        IMPORTANT: in each apps/<name>/apps.py set  name = "apps.<name>"
+        and add "apps.<name>" to INSTALLED_APPS in config/settings.py.
+[ ] [M] Create the ml/ structure (pure Python, outside Django):
+          ml/config.py  ml/utils.py  ml/predict.py
+          ml/match_model/   (scripts 01 to 10 are created phase by phase)
+          ml/player_model/  ml/season_model/
+          ml/artifacts/models/   ml/reports/figures/
+[ ] [M] Create the other folders:
+          data/raw/  data/processed/  notebooks/  templates/  static/
+          tests/  docs/
+[ ] [M] Write ml/config.py: BASE_DIR, DATA_RAW, DATA_PROCESSED, ARTIFACTS,
+        SEED = 42, TRAIN_SEASONS, VAL_SEASON, TEST_SEASON, label mapping
+        (H=0, D=1, A=2).
+[ ] [M] Write the STUB ml/predict.py (fake but valid probabilities, sum = 1).
+[ ] [M] Copy your season folders (2020-21 ... 2026-27) into data/raw/.
+[ ] [M] Create .gitignore: .venv/, __pycache__/, db.sqlite3, *.pyc,
+        .env, data/raw/ (if files are big), ml/artifacts/*.joblib (optional).
+[ ] [M] Create .env.example (SECRET_KEY=..., DEBUG=True) and a local .env (not
+        in Git). Read them in settings.py with python-dotenv / os.environ.
+[ ] [M] git init, first commit "Initial project skeleton".
+        Create a GitHub/GitLab repository (private), add your teammate, push.
+[ ] [M] Settings: set LANGUAGE_CODE = "fr", TIME_ZONE = "Africa/Tunis",
+        add TEMPLATES DIRS = [BASE_DIR / "templates"],
+        STATICFILES_DIRS = [BASE_DIR / "static"].
+[ ] [M] Run:  python manage.py migrate  then  python manage.py runserver
+        -> the Django welcome page must open.
+[ ] [S] Write a first README.md (project name, how to install, how to run).
+[ ] [S] Create a Trello/Notion/GitHub Projects board with this roadmap's tasks.
+
+DELIVERABLES: running empty Django project, Git repo, requirements.txt,
+              ml/ skeleton with config.py and the predict.py stub.
+DONE WHEN: `python manage.py runserver` works and the first commit is pushed.
+
+
+==============================================================================
+PHASE 1 - DATA LOADING & EXPLORATION   (Week 1)       ML steps 01 and 02
+==============================================================================
+GOAL: load the data and know it perfectly BEFORE modelling.
+Files: ml/match_model/01_data_loading.py, 02_data_exploration.py,
+       notebooks/01_exploration.ipynb
+
+TASKS: STEP 01 - DATA LOADING
+[ ] [M] 01_data_loading.py: read every E0_Season_XXXXYYYY.csv from data/raw/,
+        add a "season" column, concatenate, save
+        data/processed/all_matches_raw.csv. Print the number of rows per season.
+
+TASKS: NOTEBOOK (look at ALL file types, one season first)
+[ ] [M] For EACH file type, load one season and print: shape, columns, dtypes,
+        head(), describe(), missing values (isna().sum()).
+          - E0_Season_XXXXYYYY.csv  (match results + odds)
+          - master_gameweeks.csv
+          - master_player_gw.csv
+          - master_player_history.csv
+          - master_understat_teams.csv   (absent for 2025-26 and 2026-27)
+          - master_xP_projections.csv
+[ ] [M] Write the data dictionary: a table "file | column | meaning | type |
+        used for". Save it as docs/data_dictionary.md.
+[ ] [M] Check consistency across seasons: same columns? same names? same
+        number of matches (380 per complete season)? Columns that appear or
+        disappear between seasons.
+[ ] [M] Inspect the 2026-27 folder: how many matches are already played, what
+        is the date of the last played match, which fixtures are upcoming.
+[ ] [M] List ALL team names found in each file/season (set of unique names) and
+        spot the differences (e.g. "Man United" vs "Manchester Utd").
+[ ] [M] List the identifiers of players (id? name? element id?) and test if the
+        same player has the same id across seasons.
+[ ] [M] Answer these questions in the notebook:
+          - Is the date of birth / age available anywhere?  (needed for the
+            "best young player" feature)
+          - Do E0 files contain bookmaker odds columns (B365H/D/A ...)?
+          - Does master_player_gw contain opponent, home/away, minutes, xG, xA,
+            BPS, price, points?
+          - Does master_player_history have one row per past season per player?
+          - Which player positions exist (GK/DEF/MID/FWD)?
+
+TASKS: STEP 02 - DATA EXPLORATION SCRIPT
+[ ] [M] 02_data_exploration.py (reads all_matches_raw.csv): print shape, types,
+        missing values, duplicates; % home wins / draws / away wins per season;
+        average goals per match; home advantage. -> these are your BASELINE
+        numbers.
+[ ] [M] Save simple matplotlib graphs in ml/reports/figures/ (H/D/A
+        distribution, goals per season) and a text summary
+        ml/reports/exploration_summary.txt.
+[ ] [S] Extra plots in the notebook: top scorers, goals home vs away.
+[ ] [S] Write a short "findings" cell: data problems you must fix in Phase 2.
+
+DELIVERABLES: all_matches_raw.csv, 01 and 02 scripts, 01_exploration.ipynb,
+              docs/data_dictionary.md, list of problems.
+DONE WHEN: you can explain every file and column, and you know the baseline
+(e.g. "always home win" = ~4x% accuracy).
+RISK TO CHECK NOW: no age data -> plan an alternative (see Phase 8).
+
+
+==============================================================================
+PHASE 2 - PREPROCESSING, UNIFICATION & DATABASE   (Week 2)   ML step 03
+==============================================================================
+GOAL: one clean, consistent dataset + SQLite database filled by a command.
+
+TASKS: STEP 03 - PREPROCESSING (ml/match_model/03_preprocessing.py)
+[ ] [M] Build a team-name mapping dict (raw name -> official name) and apply it
+        to ALL files. Save it in ml/team_mapping.json. Test: after mapping, the
+        set of teams per season must be exactly 20.
+[ ] [M] Parse dates correctly (dayfirst for football-data format), sort by date.
+[ ] [M] Fix types (ints, floats, categories), strip whitespace.
+[ ] [M] Handle missing values explicitly (document each decision):
+          - Understat missing for 2025-26 / 2026-27 -> keep NaN + plan a model
+            version that works without xG, or impute from other stats.
+          - Missing odds -> keep NaN (odds are only a benchmark).
+[ ] [M] Remove/flag duplicates, postponed or void matches.
+[ ] [M] Keep the odds columns in clean_matches.csv but NEVER use them as
+        features of the main model (benchmark only).
+[ ] [M] Save data/processed/clean_matches.csv.
+
+TASKS: PLAYER DATA (start ml/player_model/01_player_preprocessing.py)
+[ ] [M] Player-matching strategy: use the unique id if it is stable; otherwise
+        create your own player_key (normalized name: lowercase, no accents,
+        trimmed) and handle duplicates manually.
+[ ] [M] Standardize position labels (GK/DEF/MID/FWD), fix types, map team names.
+[ ] [M] Save in data/processed/: player_gw.csv, player_history.csv, teams.csv,
+        players.csv, understat.csv. (This same script is reused in Phase 7.)
+
+TASKS: DATA TESTS (tests/test_data.py)
+[ ] [M] 380 matches/season for complete seasons, no duplicate (date, home,
+        away), all teams mapped, exactly 20 teams per season, no negative
+        minutes.
+
+TASKS: DATABASE (Django)
+[ ] [M] matches/models.py: Team, Season, Match (+ Prediction in Phase 5).
+[ ] [M] players/models.py: Player, PlayerSeasonStats, PlayerGameweekStats.
+[ ] [M] makemigrations + migrate.
+[ ] [M] Management command: apps/core/management/commands/import_data.py
+        - reads data/processed/*.csv and fills the tables
+        - IDEMPOTENT (running twice does not create duplicates: use
+          update_or_create or clear + reload with a flag --reset)
+        - uses bulk_create for speed
+[ ] [M] Register all models in admin.py (list_display, search_fields, filters).
+[ ] [M] Create superuser; check data in /admin/.
+[ ] [S] Add an "is_played" flag and keep upcoming 2026-27 fixtures in Match.
+
+DELIVERABLES: clean CSVs, mapping files, 03 script, models, import_data
+              command, filled DB.
+DONE WHEN: `python manage.py import_data` produces a full DB, and the data tests
+pass. MILESTONE J1: unified dataset validated.
+
+
+==============================================================================
+PHASE 3 - FEATURE ENGINEERING FOR THE MATCH MODEL   (Week 3)   ML step 04
+==============================================================================
+GOAL: a leak-free feature table, one row per match, ready for training.
+Files: ml/match_model/04_feature_engineering.py + notebooks/02_match_model.ipynb
+       (notebook = tests of ideas only; the final code is the .py script)
+
+CONCEPT: process matches in chronological order. For each match, compute
+features using ONLY matches with date < current match date. Write it with
+simple loops (one pass through the matches, dictionaries to store team state).
+
+TASKS
+[ ] [M] Target variable: FTR in {H, D, A} (encode 0/1/2 using config.py).
+[ ] [M] Elo rating per team:
+          expected_home = 1 / (1 + 10 ** ((elo_away - (elo_home + HOME_ADV)) / 400))
+          update: elo += K * (actual - expected)   (K ~ 20, HOME_ADV ~ 60-100)
+          Start every team at 1500; for promoted teams use a lower start value
+          or the average of relegated teams. Store elo_home, elo_away, elo_diff
+          BEFORE the update.
+[ ] [M] Rolling form features (last 5 and last 10 matches, per team, shifted so
+        the current match is excluded): points per game, goals for, goals
+        against, goal difference, win rate.
+[ ] [M] Home form (last 5 home matches) and away form (last 5 away matches).
+[ ] [M] Rest days since previous match.
+[ ] [M] Head-to-head features: over the last N meetings (use all 7 seasons):
+        home wins, draws, away wins, average goal difference.
+[ ] [S] Advanced stats (Understat): rolling xG for / xG against (last 5).
+        Handle seasons without Understat.
+[ ] [S] Squad-quality features from player data: average rolling points of the
+        team's top players before the match, minutes continuity, injuries
+        proxy (players with 0 minutes recently).
+[ ] [S] Season context: gameweek number, early-season flag (few matches played).
+[ ] [C] Bookmaker implied probabilities (normalized 1/odds). Keep them in a
+        SEPARATE feature set: main model WITHOUT odds, benchmark WITH odds.
+[ ] [M] Cold start rule: first matches of a season/team have little history ->
+        use priors (league average / Elo start) and add a "matches_played"
+        feature, or drop the first 3-5 gameweeks of 2020-21 from training.
+[ ] [M] Save: data/processed/features.csv (one row per match, including
+        upcoming 2026-27 fixtures with an empty target), the ordered feature
+        list ml/artifacts/features_list.json, and data/processed/
+        team_latest_state.csv (latest Elo, form, rest days per team, used by
+        predict.py to build features for any future match).
+[ ] [M] LEAKAGE TEST (tests/test_no_leakage.py): for random matches, recompute
+        features using only earlier matches and assert equality; assert no
+        column comes from the match itself (goals, shots, xG of that match).
+
+DELIVERABLES: 04 script, features.csv, features_list.json, leakage test.
+DONE WHEN: the table has no NaN issue you did not decide on, and the leakage
+test passes.
+
+
+==============================================================================
+PHASE 4 - MATCH MODEL: SPLIT, TRAIN, SELECT, STACK, EVALUATE   (Week 4)
+==============================================================================
+GOAL: a trained, honestly evaluated model (single model or stacking) saved to
+disk. One file per step, run in order:  05 -> 06 -> 07 -> 08 -> 09 -> 10.
+
+CHRONOLOGICAL SPLIT (defined in ml/config.py)
+  TRAIN       : 2020-21, 2021-22, 2022-23, 2023-24
+  VALIDATION  : 2024-25   -> compare models, pick the best 2, train stacking
+  TEST        : 2025-26   -> final evaluation, used ONCE
+  LIVE (extra): played matches of 2026-27 = bonus out-of-sample check
+
+STEP 05 - 05_data_split.py
+[ ] [M] Read features.csv, split by season into train.csv, val.csv, test.csv.
+[ ] [M] Check: max date(train) < min date(val) < min date(test); no overlap.
+[ ] [S] Also save live_2026.csv (played matches of 2026-27) for the bonus check.
+
+STEP 06 - 06_train_models.py (train on TRAIN only)
+[ ] [M] Model A: Logistic Regression (with StandardScaler, written step by step).
+[ ] [M] Model B: Random Forest (max_depth limited, random_state = SEED).
+[ ] [M] Model C: Gradient Boosting (scikit-learn).
+[ ] [M] Model D: XGBoost.
+[ ] [M] Save each one as ml/artifacts/models/<name>.joblib.
+[ ] [S] Small hyperparameter grids with TimeSeriesSplit on the TRAIN part only
+        (never on validation or test). Keep it simple.
+[ ] [C] Poisson model on goals (expected goals + probabilities).
+
+STEP 07 - 07_select_best_models.py (use VALIDATION)
+[ ] [M] Load the 4 models, predict probabilities on val.csv.
+[ ] [M] Compute for each: log loss, Brier score, accuracy. Print a comparison
+        table (sorted by LOG LOSS, not only accuracy).
+[ ] [M] Keep the 2 best models -> save ml/artifacts/best_two_models.json and
+        the comparison table (CSV or JSON).
+
+STEP 08 - 08_stacking.py (stacking of the 2 best models)
+[ ] [M] Load the 2 best models (trained on TRAIN in step 06).
+[ ] [M] Level 1: get their probabilities (H/D/A) on the VALIDATION set and put
+        them side by side (6 columns).
+[ ] [M] Level 2: train a simple Logistic Regression (meta-model) on these 6
+        columns to predict the real result of the validation matches.
+[ ] [M] Save ml/artifacts/models/stacking_model.joblib as a small dict
+        {model_1, model_2, meta}. Add a helper stacking_predict_proba() in
+        ml/utils.py so evaluation and predict.py use the same code.
+[ ] [M] IMPORTANT: do NOT retrain the 2 base models on train+val afterwards
+        (the meta-model learned from their validation predictions).
+[ ] [S] Compare simple averaging of the 2 models vs the meta-model.
+
+STEP 09 - 09_evaluation.py (use TEST - once)
+[ ] [M] Baseline 1: always predict "home win" (accuracy + log loss).
+[ ] [M] Baseline 2: predict league-wide historical frequencies (log loss).
+[ ] [M] Baseline 3: bookmaker implied probabilities (accuracy, log loss, Brier).
+[ ] [M] Evaluate the 4 models AND the stacking on test.csv with: accuracy,
+        LOG LOSS, Brier score, confusion matrix, recall of draws (hardest).
+[ ] [S] Ranked Probability Score (RPS).
+[ ] [M] Calibration curve plot (reliability diagram). If probabilities are badly
+        calibrated, apply a simple sigmoid calibration fitted on validation.
+[ ] [M] Feature importance (RandomForest / XGBoost importances or permutation
+        importance) -> feeds the "key factors" in the web app.
+[ ] [M] Save ml/artifacts/metrics.json (all metrics, date, library versions)
+        and the plots in ml/reports/figures/.
+[ ] [S] Bonus: evaluate the final choice on live_2026.csv.
+[ ] [S] Write conclusions: which features matter, where the model fails, how it
+        compares to the bookmakers, did stacking help?
+
+STEP 10 - 10_save_final_model.py
+[ ] [M] Choose the final model by LOG LOSS on test: stacking ONLY if it beats
+        the best single model; otherwise keep the single model and explain why
+        in the report (an honest result is a good result).
+[ ] [M] Save ml/artifacts/match_model.joblib + ml/artifacts/features_list.json
+        (ordered feature names) + training date in metrics.json.
+
+PREDICT LAYER
+[ ] [M] ml/predict.py: replace the stub. predict_match(home_team, away_team)
+        loads match_model.joblib ONCE (module-level variable), builds the
+        feature row from team_latest_state.csv + head-to-head, and returns
+        {"home": p1, "draw": p2, "away": p3} (sum = 1). Handle the case where
+        the model is a stacking dict.
+
+OPTIONAL
+[ ] [S] 11_walk_forward.py: simple loop testing season by season (train on
+        all seasons before, test on the next one) -> walk_forward_results.csv.
+
+REALISTIC TARGETS: accuracy ~50-55%; log loss below the frequency baseline;
+close to (but probably not better than) the bookmakers. Do not hide it.
+
+DELIVERABLES: scripts 05 to 10, saved model, metrics.json, plots, predict.py.
+DONE WHEN: predict_match("Arsenal", "Chelsea") returns valid probabilities in
+under 2 seconds. MILESTONE J2: models compared to baselines, stacking evaluated.
+
+
+==============================================================================
+PHASE 5 - DJANGO MVP + CRUD FAVORITES   (Weeks 5-6)
+==============================================================================
+GOAL: a working web app: register, log in, predict a match, see history, manage
+favorite teams (full CRUD).
+
+WEEK 5 - BACKEND
+[ ] [M] accounts app: register view (UserCreationForm or custom), login, logout
+        (django.contrib.auth views), redirect settings (LOGIN_URL, etc.).
+[ ] [M] matches/models.py: Prediction (user, home_team, away_team, match
+        nullable, p_home, p_draw, p_away, predicted_result, actual_result
+        nullable, model_version, created_at). Migrate.
+[ ] [M] matches/services.py:
+          - call ml/predict.py (model loaded ONCE)
+          - predict(home_team, away_team) -> dict of probabilities
+          - save_prediction(user, ...) -> Prediction
+          - h2h_summary(team_a, team_b), recent_form(team, n=5)
+[ ] [M] matches/forms.py: PredictionForm (two ModelChoiceFields) with
+        validation: teams must be different.
+[ ] [M] matches/views.py (function-based, thin views): predict_view,
+        history_view, prediction_detail_view, delete_prediction_view.
+        Use @login_required. Delete only own predictions (filter by
+        request.user -> 404 otherwise).
+[ ] [M] urls.py for each app + include() in config/urls.py.
+[ ] [M] Error handling: model file missing, unknown team, exception in ML code
+        -> friendly message, never a raw crash.
+
+WEEK 6 - CRUD "MES EQUIPES FAVORITES" (apps/favorites)
+GOAL: a complete Create / Read / Update / Delete feature on a simple model.
+[ ] [M] favorites/models.py: FavoriteTeam(user, team, priority, note,
+        created_at).
+          - priority: 1 = Haute, 2 = Moyenne, 3 = Basse (choices)
+          - note: optional, max 200 characters
+          - unique constraint on (user, team): no duplicates
+        Migrate.
+[ ] [M] favorites/forms.py: FavoriteTeamForm (ModelForm: team, priority, note).
+        On edit, the team field is read-only/disabled.
+[ ] [M] favorites/views.py (function-based views, all @login_required):
+          - favorite_list   (READ list, sorted by priority, shows recent form
+                             of each team using matches/services.py)
+          - favorite_create (CREATE, /favorites/add/)
+          - favorite_detail (READ detail, /favorites/<id>/)  [S]
+          - favorite_update (UPDATE, /favorites/<id>/edit/)
+          - favorite_delete (DELETE with confirmation page,
+                             /favorites/<id>/delete/)
+[ ] [M] OWNERSHIP: every query filters by request.user and uses
+        get_object_or_404 -> a user can never see or change another user's
+        favorite (404).
+[ ] [M] Messages after each action: "Equipe ajoutee", "Favori modifie",
+        "Favori supprime". Handle the duplicate error with a clear message.
+[ ] [M] favorites/urls.py + include in config/urls.py; admin.py registration.
+[ ] [M] Templates: favorites/list.html, form.html (shared by add/edit),
+        confirm_delete.html, detail.html.
+[ ] [M] Tests (favorites/tests.py): create, duplicate refused, list shows only
+        my favorites, update priority/note, delete, another user gets 404,
+        anonymous user is redirected to login.
+[ ] [C] Show favorites and their next match on the home page.
+
+WEEK 6 - FRONTEND & POLISH OF THE MVP
+[ ] [M] templates/base.html: Tailwind layout (CDN in dev), navbar (Home,
+        Predict, History, Mes favoris, Teams, Login/Logout), messages block,
+        footer.
+[ ] [M] home.html: short intro, upcoming matches, last predictions.
+[ ] [M] predict.html: form + result section: 3 probability cards, donut chart
+        (Chart.js), recent form of both teams, H2H summary, key factors.
+[ ] [M] history.html: table with pagination (date, match, probabilities,
+        predicted result, real result, correct/incorrect badge), link to
+        detail, delete button with confirmation.
+[ ] [M] register.html and login.html styled with Tailwind.
+[ ] [S] Auto-fill actual_result for predictions when the real match result is
+        known (small function or management command update_results).
+[ ] [S] Upcoming fixtures page: list next matches with a "Predict" button.
+[ ] [M] Django tests: views return 200/302, anonymous users are redirected,
+        form validation (same team twice), prediction saved, deletion works.
+[ ] [M] Commit + tag:  git tag v0.1-mvp
+
+DELIVERABLES: functional MVP running locally, including the favorites CRUD.
+DONE WHEN: a new user can register, log in, predict Arsenal vs Chelsea, see the
+result page, find it in the history, and add / edit / delete a favorite team.
+MILESTONE J3 (end of week 6): MVP FREEZE. From now on, only ADD features;
+do not rewrite the core.
+
+
+==============================================================================
+PHASE 6 - TEAM ANALYSIS & DASHBOARDS   (Weeks 6-7)
+==============================================================================
+GOAL: visual, interesting pages that make the demo attractive.
+
+TASKS
+[ ] [S] Teams list page and team detail page /teams/<id>/.
+[ ] [S] Standings per season (computed from Match table with the ORM:
+        points, GD, goals). Season selector.
+[ ] [S] Team trends: form over time (line chart), goals for/against (bar),
+        home vs away performance, xG vs real goals (where available).
+[ ] [S] Compare two teams: radar/bars for attack, defence, form, Elo.
+[ ] [S] Elo evolution chart of the 20 current teams.
+[ ] [S] "Model performance" page /model/performance/: show metrics.json:
+        comparison table of the 4 models + stacking, baselines, confusion
+        matrix, calibration curve, and the final model chosen. (Great for the
+        ML professor.)
+[ ] [S] Dashboard on the home page: key indicators (matches played, model
+        accuracy on 2026-27 so far, user's success rate).
+[ ] [C] User stats: personal accuracy over their predictions.
+[ ] [C] Compare with bookmaker probabilities on the prediction page.
+
+TECH NOTES
+- Prepare JSON data in the view (json_script) and draw charts with Chart.js or
+  Plotly in static/js. Keep calculations in services.py, not in templates.
+
+DELIVERABLES: teams pages, comparison, performance page.
+DONE WHEN: all pages load fast (< 3 s) with real data and graphs.
+
+
+==============================================================================
+PHASE 7 - PLAYER MODELS & PLAYER FEATURES   (Weeks 7-8)
+==============================================================================
+GOAL: expected performance of players -> comparison, player of the match,
+players at risk.
+Files (one per step): ml/player_model/01_player_preprocessing.py (started in
+Phase 2), 02_player_features.py, 03_player_split_train.py,
+04_player_evaluation.py + notebooks/03_player_model.ipynb
+
+WEEK 7 - MODEL
+[ ] [M] 01: finish the player preprocessing (already started in Phase 2).
+[ ] [M] 02_player_features.py: define the target (points of a player in a
+        gameweek). Build rolling, shifted features (no leakage): last 3/5
+        gameweeks of minutes, points, BPS, xG, xA, goals, assists, ICT;
+        position; home/away; opponent attack/defence strength (from team stats
+        or Elo); price; xP projection; availability indicators.
+[ ] [M] 03_player_split_train.py: SAME chronological split as the match model
+        (train 2020-24 / validation 2024-25 / test 2025-26).
+        Baselines: last gameweek's points; rolling average.
+        Models: Ridge, Random Forest, XGBoost Regressor.
+[ ] [M] 04_player_evaluation.py: MAE, RMSE, Spearman correlation; for ranking:
+        top-1 and top-3 hit rate of the "best player of the match".
+        Save ml/artifacts/player_model.joblib + player_features_list.json +
+        player_metrics.json.
+[ ] [M] ml/predict.py: predict_player_points(player, opponent, home/away).
+
+WEEK 8 - DJANGO MODULE (players app)
+[ ] [S] Player search and detail page (stats per season, form chart).
+[ ] [S] Compare two players page: side-by-side stats + expected points for the
+        chosen opponent/gameweek + winner highlight.
+[ ] [S] Match stars page: for a chosen upcoming match, rank players of both
+        teams by expected points -> top 3 "players of the match".
+[ ] [S] Players at risk: lowest expected performance among likely starters.
+[ ] [C] Player vs specific opponent history (goals/points against that team).
+[ ] [M] Tests for services and views of the players app.
+
+REMINDER: individual match performance is very noisy. Show results as
+"expected performance" with an honest note about uncertainty.
+
+DELIVERABLES: player model, players module (search, compare, stars, risk).
+DONE WHEN: you can pick two teams, see the top 3 predicted players, and compare
+two players with a result.
+MILESTONE J4 (start of week 9 at the latest): all [S] features of players done.
+
+
+==============================================================================
+PHASE 8 - SEASON PREDICTIONS & BEST SQUAD   (Week 9)
+==============================================================================
+GOAL: predictions for the 2026-27 season.
+Files: ml/season_model/01_season_features.py, 02_season_train_eval.py,
+       03_optimize_squad.py
+
+TASKS: SEASON-LEVEL MODEL
+[ ] [M] 01_season_features.py: one row per (player, season) with features from
+        the PREVIOUS seasons (minutes, points, goals, assists, xG, xA, price,
+        position, team strength, age if available); target = total points of
+        that season. Source: master_player_history.csv.
+[ ] [M] 02_season_train_eval.py: validate by predicting season t from seasons
+        before t for t = 2022-23 ... 2025-26 (only ~4 transitions: keep models
+        simple and regularized: Ridge, Random Forest with limited depth).
+[ ] [M] Metrics: MAE, Spearman, overlap of predicted top-10 vs real top-10.
+[ ] [M] Predict 2026-27 totals; add an uncertainty range (e.g. residual-based or
+        ensemble spread). Display rankings, not certainties.
+        Save ml/artifacts/season_model.joblib.
+
+TASKS: FEATURES
+[ ] [S] Best player of the 2026-27 season (top 10 ranking).
+[ ] [S] Best young player: filter by age (default < 22).
+        IF NO AGE DATA: enrich with a manual CSV (player, birth_date) or use an
+        alternative criterion (e.g. first/second season in the league) and
+        state it clearly in the report.
+[ ] [S] Best squad (03_optimize_squad.py) with PuLP:
+          maximize  sum(expected_points * selected)
+          subject to: 15 players = 2 GK + 5 DEF + 5 MID + 3 FWD
+                      total price <= 100.0 (parametrizable)
+                      max 3 players per club
+                      starting XI with a valid formation, captain = best
+        FALLBACK if PuLP is too hard: simple greedy method (sort by expected
+        points, pick players while respecting the constraints).
+[ ] [C] Final table projection: simulate the season (Monte-Carlo with match
+        probabilities) -> expected points, title / top-4 / relegation chances.
+[ ] [C] Top scorers and top assisters prediction.
+[ ] [C] Other predictions: best defence, most improved player, most
+        under-valued player (expected points per price).
+[ ] [M] season app: views + templates for each prediction; cache results in the
+        SeasonForecast table (compute once, display many times).
+[ ] [M] Tests for the optimizer (constraints respected) and the views.
+
+DELIVERABLES: season module with best player, best young, best XI.
+DONE WHEN: /season/best-xi/ shows a valid squad respecting all constraints.
+
+
+==============================================================================
+PHASE 9 - POLISH, TESTS, SECURITY & DOCUMENTATION   (Week 10, first half)
+==============================================================================
+GOAL: stable, clean, presentable, documented.
+
+TASKS
+[ ] [M] Run the whole test suite: python manage.py test  /  pytest tests/
+        (data tests, leakage test, ML tests: probabilities sum to 1, loaded
+        model reproduces saved metrics, final model beats the baselines).
+[ ] [M] Fix bugs; test every page as visitor, as user and as admin.
+        Test the favorites CRUD with TWO different users.
+[ ] [M] Security checklist:
+          - SECRET_KEY and sensitive settings from environment variables
+          - DEBUG = False test (check static files, 404/500 pages)
+          - CSRF tokens in all POST forms
+          - login_required on private pages, ownership checks on delete
+            (predictions AND favorites)
+          - ALLOWED_HOSTS configured
+[ ] [M] Performance: model loaded once; cache season forecasts; use
+        select_related / prefetch_related; check pages with many rows.
+[ ] [M] UI polish: consistent colors, responsive on phone, empty states
+        ("no prediction yet", "no favorite team yet"), loading indicators,
+        error pages (404/500).
+[ ] [M] Code quality: PEP 8 (ruff/flake8), a header comment in every ML
+        script, docstrings on services and ml functions, remove dead code and
+        unused notebook cells. Re-read the CODING RULES.
+[ ] [M] Documentation:
+          - README: prerequisites, install, import data, run the ML scripts in
+            order, run the server
+          - commands list:
+              python manage.py migrate
+              python ml/match_model/01_data_loading.py
+              python ml/match_model/02_data_exploration.py
+              python ml/match_model/03_preprocessing.py
+              python ml/match_model/04_feature_engineering.py
+              python ml/match_model/05_data_split.py
+              python ml/match_model/06_train_models.py
+              python ml/match_model/07_select_best_models.py
+              python ml/match_model/08_stacking.py
+              python ml/match_model/09_evaluation.py
+              python ml/match_model/10_save_final_model.py
+              python ml/player_model/01_player_preprocessing.py  (then 02-04)
+              python ml/season_model/01_season_features.py       (then 02-03)
+              python manage.py import_data
+              python manage.py runserver
+          - docs/data_dictionary.md, architecture diagram
+[ ] [M] Prepare a DEMO DATABASE with a demo user, some saved predictions and a
+        few favorite teams.
+[ ] [M] Final clean install test: clone the repo in a new folder, create a new
+        venv, follow the README step by step. If it fails, fix the README.
+[ ] [M] Git: merge everything, tag  v1.0-final.
+
+DONE WHEN: a fresh clone works by following the README only.
+MILESTONE J5: project complete and frozen.
+
+
+==============================================================================
+PHASE 10 - REPORT, DEMO & DEFENSE   (Week 10, second half)
+==============================================================================
+GOAL: present the project convincingly to BOTH professors.
+
+REPORT (suggested outline)
+[ ] [M] 1. Introduction & problem  2. Data description  3. Preprocessing &
+        feature engineering  4. Modelling: chronological split, 4 models,
+        selection of the best 2, stacking  5. Results (tables + plots,
+        comparison to baselines/bookmakers, did stacking help?)  6. Web
+        application (architecture, models, CRUD favorites, screenshots)
+        7. Tests & security  8. Limits & future work  9. Conclusion
+        10. Appendices.
+[ ] [M] Include screenshots of every main page and the metrics tables.
+[ ] [M] Be explicit about limits: noise in football, few seasons for season-
+        level models, small validation set for the stacking meta-model,
+        missing xG for recent seasons, no age data (if true).
+
+SLIDES (12-15 slides, ~15-20 minutes)
+[ ] [M] 1 Title  2 Problem & goals  3 Data  4 Architecture (ml/ vs apps/)
+        5 Features (no leakage)  6 Chronological split + one file per step
+        7 Models, best-2 selection and STACKING  8 Results vs baselines
+        9 Player & season models  10 Django app + CRUD favorites
+        11 LIVE DEMO  12 Limits  13 Future work  14 Conclusion/Q&A.
+
+DEMO SCRIPT (rehearse 3 times, have screenshots as backup)
+  1. Log in with the demo user.
+  2. Predict a real upcoming match -> show probabilities, form, H2H, key factors.
+  3. Open the history page -> show correct/incorrect badges.
+  4. Favorites: add a team, edit its priority/note, delete it (full CRUD).
+  5. Match stars page for the same match.
+  6. Compare two players.
+  7. Show the 2026-27 best player / best young player / best XI.
+  8. Show the "Model performance" page and explain the model comparison and
+     the stacking result.
+  9. (If asked) show the admin and the code structure ml/ vs apps/, and open
+     one short ML script to show how simple it is.
+
+PREPARE ANSWERS FOR LIKELY QUESTIONS
+  - Why a chronological split and not a random split?  (time dependency, no
+    leakage; the test season is used once)
+  - How did you avoid data leakage?  (shifted rolling features, leakage test)
+  - Why is accuracy only ~50-55%?  (football randomness; compare bookmakers)
+  - Why log loss/Brier and not only accuracy?  (probabilities quality)
+  - How does your stacking work?  (2 best models give probabilities on
+    validation, a logistic regression combines them)
+  - Why train the meta-model on the validation season?  (keeps time order,
+    avoids leakage of a random cross-validation)
+  - Did stacking improve the result?  (answer honestly with your numbers)
+  - Why not train inside Django?  (separation of concerns, performance)
+  - How do you load the model?  (once at startup, joblib)
+  - How do you make sure users only see their own favorites?  (filter by
+    request.user + get_object_or_404)
+  - How is the best squad computed?  (linear programming with constraints)
+  - What would you improve?  (live data API, SHAP, favorite players, more
+    leagues, deployment)
+
+DONE WHEN: report delivered, slides ready, demo rehearsed, backup screenshots
+saved, code pushed and tagged.
+
+
+==============================================================================
+WEEKLY ROUTINE (apply every week)
+==============================================================================
+Monday    : pick the week's tasks from this roadmap, update the board.
+Tue-Thu   : build. Commit daily. Write/adjust tests as you go.
+Friday    : review - does the milestone's "Done when" hold? Update README.
+            Check the code is still SIMPLE (headers, short functions).
+Weekend   : light buffer / catch up. Do NOT start next week's phase early
+            unless this one is truly done.
+
+==============================================================================
+IF YOU ARE BEHIND SCHEDULE: CUT LIST (cut from the top, in this order)
+==============================================================================
+1. All [C] features (final table simulation, top scorers, API, bookmaker view,
+   favorites on the home page).
+2. Optional script 11_walk_forward.py and player-vs-opponent history.
+3. Poisson model and hyperparameter grids (keep the 4 models with simple
+   default settings).
+4. Squad-quality features inside the match model.
+5. Team comparison radar and Elo evolution page.
+6. NEVER cut: match prediction, history, FAVORITES CRUD, comparison with
+   baselines, selection of the best 2 + stacking (even if it gives no gain),
+   one-file-per-step structure, tests, authentication, README.
+
+==============================================================================
+FINAL CHECKLIST BEFORE SUBMISSION
+==============================================================================
+[ ] Data: clean CSVs, mappings, import_data works twice without duplicates
+[ ] ML: every step in its own file with a header comment, run in order 01->10
+[ ] ML: leakage test passes, chronological split respected (train < val < test)
+[ ] ML: 4 models + 2 baselines compared, best 2 selected, stacking evaluated,
+    metrics.json + features_list.json + match_model.joblib saved
+[ ] Django: auth, predictions CRUD, history, admin, players, season pages
+[ ] Django: favorites CRUD complete (create, list, detail, edit, delete) with
+    ownership check and tests
+[ ] Tests pass, DEBUG=False tested, secrets not in the repo (.env ignored,
+    .env.example provided)
+[ ] README tested on a fresh clone (with the ML scripts order)
+[ ] Report, slides, demo database, backup screenshots ready
+[ ] Git tag v1.0-final pushed
+
+==============================================================================
+CONTRIBUTION MAP (what each professor will look for)
+==============================================================================
+MACHINE LEARNING : exploration, preprocessing, feature engineering, no
+                   leakage, chronological split, baselines, 4 models compared,
+                   best-2 selection, STACKING, calibration, metrics,
+                   interpretation, optimization (PuLP), simple and documented
+                   code (one file per step), critical analysis of limits.
+DJANGO           : multi-app architecture, models/ORM/migrations, forms,
+                   authentication, FULL CRUD (predictions + favorites),
+                   templates + Tailwind, services layer, admin, tests,
+                   (optional) DRF API, security basics.
+
+Good luck - build the MVP first, then add the rest step by step.
+==============================================================================

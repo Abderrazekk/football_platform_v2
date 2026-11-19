@@ -1,0 +1,221 @@
+Shape: (2350, 178)
+
+Columns (178):
+  - Division
+  - Match_Date
+  - Kickoff_Time
+  - Home_Team
+  - Away_Team
+  - Full_Time_Home_Goals
+  - Full_Time_Away_Goals
+  - Full_Time_Result
+  - Half_Time_Home_Goals
+  - Half_Time_Away_Goals
+  - Half_Time_Result
+  - Referee
+  - Home_Shots
+  - Away_Shots
+  - Home_Shots_On_Target
+  - Away_Shots_On_Target
+  - Home_Fouls
+  - Away_Fouls
+  - Home_Corners
+  - Away_Corners
+  - Home_Yellow_Cards
+  - Away_Yellow_Cards
+  - Home_Red_Cards
+  - Away_Red_Cards
+  - Bet365_Home_Odds
+  - Bet365_Draw_Odds
+  - Bet365_Away_Odds
+  - Betway_Home_Odds
+  - Betway_Draw_Odds
+  - Betway_Away_Odds
+  - IWH
+  - IWD
+  - IWA
+  - Pinnacle_Home_Odds
+  - Pinnacle_Draw_Odds
+  - Pinnacle_Away_Odds
+  - WHH
+  - WHD
+  - WHA
+  - VCH
+  - VCD
+  - VCA
+  - Max_Market_Home_Odds
+  - Max_Market_Draw_Odds
+  - Max_Market_Away_Odds
+  - Avg_Market_Home_Odds
+  - Avg_Market_Draw_Odds
+  - Avg_Market_Away_Odds
+  - Bet365_Over_2.5_Goals
+  - Bet365_Under_2.5_Goals
+  - Pinnacle_Over_2.5_Goals
+  - Pinnacle_Under_2.5_Goals
+  - Max_Over_2.5_Goals
+  - Max_Under_2.5_Goals
+  - Avg_Over_2.5_Goals
+  - Avg_Under_2.5_Goals
+  - Asian_Handicap_Size
+  - Bet365_Asian_Handicap_Home
+  - Bet365_Asian_Handicap_Away
+  - Pinnacle_Asian_Handicap_Home
+  - Pinnacle_Asian_Handicap_Away
+  - Max_Asian_Handicap_Home
+  - Max_Asian_Handicap_Away
+  - Avg_Asian_Handicap_Home
+  - Avg_Asian_Handicap_Away
+  - Bet365_Closing_Home_Odds
+  - Bet365_Closing_Draw_Odds
+  - Bet365_Closing_Away_Odds
+  - Betway_Closing_Home_Odds
+  - Betway_Closing_Draw_Odds
+  - Betway_Closing_Away_Odds
+  - IWCH
+  - IWCD
+  - IWCA
+  - Pinnacle_Closing_Home_Odds
+  - Pinnacle_Closing_Draw_Odds
+  - Pinnacle_Closing_Away_Odds
+  - WHCH
+  - WHCD
+  - WHCA
+  - VCCH
+  - VCCD
+  - VCCA
+  - Max_Closing_Home_Odds
+  - Max_Closing_Draw_Odds
+  - Max_Closing_Away_Odds
+  - Avg_Closing_Home_Odds
+  - Avg_Closing_Draw_Odds
+  - Avg_Closing_Away_Odds
+  - Bet365_Closing_Over_2.5
+  - Bet365_Closing_Under_2.5
+  - Pinnacle_Closing_Over_2.5
+  - Pinnacle_Closing_Under_2.5
+  - Max_Closing_Over_2.5
+  - Max_Closing_Under_2.5
+  - Avg_Closing_Over_2.5
+  - Avg_Closing_Under_2.5
+  - Closing_Asian_Handicap_Size
+  - Bet365_Closing_Asian_Handicap_Home
+  - Bet365_Closing_Asian_Handicap_Away
+  - Pinnacle_Closing_Asian_Handicap_Home
+  - Pinnacle_Closing_Asian_Handicap_Away
+  - Max_Closing_Asian_Handicap_Home
+  - Max_Closing_Asian_Handicap_Away
+  - Avg_Closing_Asian_Handicap_Home
+  - Avg_Closing_Asian_Handicap_Away
+  - season
+  - BFH
+  - BFD
+  - BFA
+  - 1XBH
+  - 1XBD
+  - 1XBA
+  - BetfairExchange_Home_Odds
+  - BetfairExchange_Draw_Odds
+  - BetfairExchange_Away_Odds
+  - BetfairExchange_Over_2.5_Goals
+  - BetfairExchange_Under_2.5_Goals
+  - BetfairExchange_Asian_Handicap_Home
+  - BetfairExchange_Asian_Handicap_Away
+  - BFCH
+  - BFCD
+  - BFCA
+  - 1XBCH
+  - 1XBCD
+  - 1XBCA
+  - BetfairExchange_Closing_Home_Odds
+  - BetfairExchange_Closing_Draw_Odds
+  - BetfairExchange_Closing_Away_Odds
+  - BetfairExchange_Closing_Over_2.5
+  - BetfairExchange_Closing_Under_2.5
+  - BetfairExchange_Closing_Asian_Handicap_Home
+  - BetfairExchange_Closing_Asian_Handicap_Away
+  - Betfair_Home_Odds
+  - Betfair_Draw_Odds
+  - Betfair_Away_Odds
+  - BetMGM_Home_Odds
+  - BetMGM_Draw_Odds
+  - BetMGM_Away_Odds
+  - BetVictor_Home_Odds
+  - BetVictor_Draw_Odds
+  - BetVictor_Away_Odds
+  - Coral_Home_Odds
+  - Coral_Draw_Odds
+  - Coral_Away_Odds
+  - Ladbrokes_Home_Odds
+  - Ladbrokes_Draw_Odds
+  - Ladbrokes_Away_Odds
+  - Betfair_Closing_Home_Odds
+  - Betfair_Closing_Draw_Odds
+  - Betfair_Closing_Away_Odds
+  - BetMGM_Closing_Home_Odds
+  - BetMGM_Closing_Draw_Odds
+  - BetMGM_Closing_Away_Odds
+  - BetVictor_Closing_Home_Odds
+  - BetVictor_Closing_Draw_Odds
+  - BetVictor_Closing_Away_Odds
+  - Coral_Closing_Home_Odds
+  - Coral_Closing_Draw_Odds
+  - Coral_Closing_Away_Odds
+  - Ladbrokes_Closing_Home_Odds
+  - Ladbrokes_Closing_Draw_Odds
+  - Ladbrokes_Closing_Away_Odds
+  - HxG
+  - AxG
+  - PPH
+  - PPD
+  - PPA
+  - SKBH
+  - SKBD
+  - SKBA
+  - PPCH
+  - PPCD
+  - PPCA
+  - SKBCH
+  - SKBCD
+  - SKBCA
+  - total_goals
+
+Missing values (top 10):
+PPH      2280
+PPD      2280
+SKBCA    2280
+SKBCD    2280
+SKBCH    2280
+PPCH     2280
+SKBH     2280
+PPA      2280
+HxG      2280
+AxG      2280
+dtype: int64
+
+Exact duplicate rows: 0
+
+--- BASELINE: H/D/A percentages (overall) ---
+Full_Time_Result
+H    43.02
+A    33.28
+D    23.70
+Name: proportion, dtype: float64
+
+--- H/D/A percentages per season ---
+Full_Time_Result      A      D      H
+season                               
+2020-21           40.26  21.84  37.89
+2021-22           33.95  23.16  42.89
+2022-23           28.68  22.89  48.42
+2023-24           32.37  21.58  46.05
+2024-25           34.74  24.47  40.79
+2025-26           30.00  27.37  42.63
+2026-27           31.43  28.57  40.00
+
+'Always predict Home win' baseline accuracy: 43.02%
+
+Avg goals per match: 2.89
+Avg home goals     : 1.56
+Avg away goals     : 1.33
+Home advantage (home - away goals): 0.23
