@@ -1,0 +1,21 @@
+<!-- templates/accounts/login.html -->
+{% extends "base.html" %}
+{% block title %}Connexion — Football AI{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+  <h1 class="text-2xl font-bold text-slate-900 mb-6">Connexion</h1>
+  <form method="post" class="space-y-4">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit"
+            class="w-full py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition">
+      Se connecter
+    </button>
+  </form>
+  <p class="mt-4 text-sm text-center text-slate-600">
+    Pas encore de compte ?
+    <a href="{% url 'accounts:register' %}" class="text-emerald-600 font-semibold hover:underline">Inscription</a>
+  </p>
+</div>
+{% endblock %}

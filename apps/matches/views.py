@@ -69,3 +69,13 @@ def delete_prediction_view(request, pk):
     prediction.delete()
     messages.success(request, "Prediction deleted.")
     return redirect("matches:history")
+
+
+def upcoming_fixtures(request):
+    # Replace with live DB/API fixtures when synced
+    fixtures = [
+        {"date": "2026-11-28 15:00", "league": "Premier League", "home": "Arsenal", "away": "Chelsea"},
+        {"date": "2026-11-28 17:30", "league": "Premier League", "home": "Liverpool", "away": "Manchester City"},
+        {"date": "2026-11-29 20:00", "league": "La Liga", "home": "Real Madrid", "away": "Barcelona"},
+    ]
+    return render(request, "matches/upcoming.html", {"fixtures": fixtures})

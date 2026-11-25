@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Prédire un match — Football AI{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-8">
+  <!-- Prediction Form -->
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+    <h1 class="text-2xl font-bold text-slate-900 mb-4">Prédire un match</h1>
+    <form method="post" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+      {% csrf_token %}
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Équipe Domicile</label>
+        {{ form.home_team }}
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Équipe Extérieur</label>
+        {{ form.away_team }}
+      </div>
+      <div>
+        <button type="submit"
+                class="w-full py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition">
+          Lancer la prédiction
+        </button>
+      </div>
+    </form>
+    {% if form.errors %}
+      <div class="mt-3 text-sm text-red-600">{{ form.errors }}</div>
+    {% endif %}
+  </div>
+
+  {% if result %}
+  <!-- 3 Probability Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="bg-white rounded-xl border border-slate-200 p-5 text-center shadow-sm">
+      <p class="text-xs uppercase tracking-wider text-slate-500">Victoire {{ result.home_team }}</p>
+      <p class="text-3xl font-extrabold text-emerald-600 mt-1">{{ result.prob_home|floatformat:1 }}%</p>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 p-5 text-center shadow-sm">
+      <p class="text-xs uppercase tracking-wider text-slate-500">Match Nul</p>
+      <p class="text-3xl font-extrabold text-amber-500 mt-1">{{ result.prob_draw|floatformat:1 }}%</p>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 p-5 text-center shadow-sm">
+      <p class="text-xs uppercase tracking-wider text-slate-500">Victoire {{ result.away_team }}</p>
+      <p class="text-3xl font-extrabold text-blue-600 mt-1">{{ result.prob_away|floatformat:1 }}%</p>
+    </div>
+  </div>
+
+  <!-- Chart.js Donut + Key Factors -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col items-center">
+      <h2 class="text-lg font-semibold mb-4">Répartition des probabilités</h2>
+      <div class="w-60 h-60">
+        <canvas id="probDonutChart"></canvas>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-4">
+      <h2 class="text-lg font-semibold">Facteurs clés</h2>
+      <ul class="space-y-2 text-sm text-slate-700">
+        {% for factor in result.key_factors %}
+          <li class="flex items-start gap-2">
+            <span class="text-emerald-500 font-bold">•</span>
+            <span>{{ factor }}</span>
+          </li>
+        {% empty %}
+          <li class="text-slate-400">Aucun facteur détaillé disponible.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <!-- Recent Form & H2H -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+      <h2 class="text-lg font-semibold mb-3">Forme récente (5 derniers matchs)</h2>
+      <div class="space-y-3 text-sm">
+        <div class="flex items-center justify-between">
+          <span class="font-medium">{{ result.home_team }}</span>
+          <div class="flex gap-1">
+            {% for r in result.home_form %}
+              <span class="w-6 h-6 rounded flex items-center justify-center text-xs font-bold text-white
+                {% if r == 'W' %}bg-emerald-500{% elif r == 'D' %}bg-amber-400{% else %}bg-red-500{% endif %}">
+                {{ r }}
+              </span>
+            {% empty %}
+              <span class="text-slate-400">—</span>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="font-medium">{{ result.away_team }}</span>
+          <div class="flex gap-1">
+            {% for r in result.away_form %}
+              <span class="w-6 h-6 rounded flex items-center justify-center text-xs font-bold text-white
+                {% if r == 'W' %}bg-emerald-500{% elif r == 'D' %}bg-amber-400{% else %}bg-red-500{% endif %}">
+                {{ r }}
+              </span>
+            {% empty %}
+              <span class="text-slate-400">—</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+      <h2 class="text-lg font-semibold mb-3">Confrontations directes (H2H)</h2>
+      <ul class="divide-y divide-slate-100 text-sm">
+        {% for match in result.h2h %}
+          <li class="py-2 flex justify-between">
+            <span>{{ match.home }} <strong>{{ match.score }}</strong> {{ match.away }}</span>
+            <span class="text-slate-400 text-xs">{{ match.date }}</span>
+          </li>
+        {% empty %}
+          <li class="text-slate-400">Aucune confrontation récente enregistrée.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if result %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+  const ctx = document.getElementById('probDonutChart');
+  if (ctx) {
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['{{ result.home_team|escapejs }}', 'Nul', '{{ result.away_team|escapejs }}'],
+        datasets: [{
+          data: [{{ result.prob_home|stringformat:"f" }}, {{ result.prob_draw|stringformat:"f" }}, {{ result.prob_away|stringformat:"f" }}],
+          backgroundColor: ['#10b981', '#f59e0b', '#2563eb'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        cutout: '65%',
+        plugins: { legend: { position: 'bottom' } }
+      }
+    });
+  }
+</script>
+{% endif %}
+{% endblock %}
