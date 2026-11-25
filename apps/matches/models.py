@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 
@@ -57,3 +58,52 @@ class Match(models.Model):
     def __str__(self):
         score = f"{self.home_goals}-{self.away_goals}" if self.is_played else "vs"
         return f"{self.match_date} | {self.home_team} {score} {self.away_team}"
+    
+
+class Prediction(models.Model):
+    RESULT_CHOICES = [
+        ("H", "Home Win"),
+        ("D", "Draw"),
+        ("A", "Away Win"),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="predictions",
+    )
+    home_team = models.ForeignKey(
+        "Team",
+        on_delete=models.CASCADE,
+        related_name="home_predictions",
+    )
+    away_team = models.ForeignKey(
+        "Team",
+        on_delete=models.CASCADE,
+        related_name="away_predictions",
+    )
+    match = models.ForeignKey(
+        "Match",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="predictions",
+    )
+    p_home = models.FloatField()
+    p_draw = models.FloatField()
+    p_away = models.FloatField()
+    predicted_result = models.CharField(max_length=1, choices=RESULT_CHOICES)
+    actual_result = models.CharField(
+        max_length=1,
+        choices=RESULT_CHOICES,
+        null=True,
+        blank=True,
+    )
+    model_version = models.CharField(max_length=64, default="stacking")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.home_team} vs {self.away_team} ({self.predicted_result}) - {self.user.username}"    
