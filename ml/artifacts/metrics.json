@@ -1,0 +1,174 @@
+{
+  "evaluated_at_utc": "2026-11-25T22:16:28.770496+00:00",
+  "library_versions": {
+    "scikit-learn": "1.9.1",
+    "xgboost": "3.4.1",
+    "pandas": "3.1.1",
+    "numpy": "2.5.5"
+  },
+  "test_set_size": 260,
+  "live_2026_size": 70,
+  "baselines": {
+    "always_home_win": {
+      "log_loss": 21.7648,
+      "accuracy": 0.3962,
+      "precision_macro": 0.1321,
+      "recall_macro": 0.3333,
+      "f1_macro": 0.1892,
+      "draw_recall": 0.0,
+      "mse": 0.4026,
+      "rmse": 0.6253
+    },
+    "train_class_frequencies": {
+      "log_loss": 1.1029,
+      "accuracy": 0.3962,
+      "precision_macro": 0.1321,
+      "recall_macro": 0.3333,
+      "f1_macro": 0.1892,
+      "draw_recall": 0.0,
+      "mse": 0.2227,
+      "rmse": 0.4717
+    }
+  },
+  "test_model_comparison": [
+    {
+      "model": "stacking",
+      "log_loss": 1.0793,
+      "accuracy": 0.4385,
+      "precision_macro": 0.2919,
+      "recall_macro": 0.3994,
+      "f1_macro": 0.3273,
+      "draw_recall": 0.0,
+      "mse": 0.2177,
+      "rmse": 0.4665
+    },
+    {
+      "model": "logistic_regression",
+      "log_loss": 1.0949,
+      "accuracy": 0.4231,
+      "precision_macro": 0.277,
+      "recall_macro": 0.3904,
+      "f1_macro": 0.3222,
+      "draw_recall": 0.0,
+      "mse": 0.2203,
+      "rmse": 0.4693
+    },
+    {
+      "model": "random_forest",
+      "log_loss": 1.0981,
+      "accuracy": 0.4192,
+      "precision_macro": 0.2729,
+      "recall_macro": 0.3862,
+      "f1_macro": 0.3177,
+      "draw_recall": 0.0,
+      "mse": 0.2211,
+      "rmse": 0.4701
+    },
+    {
+      "model": "decision_tree",
+      "log_loss": 1.1152,
+      "accuracy": 0.4346,
+      "precision_macro": 0.4493,
+      "recall_macro": 0.4051,
+      "f1_macro": 0.3397,
+      "draw_recall": 0.0128,
+      "mse": 0.2256,
+      "rmse": 0.475
+    },
+    {
+      "model": "xgboost",
+      "log_loss": 1.1183,
+      "accuracy": 0.4038,
+      "precision_macro": 0.4078,
+      "recall_macro": 0.3754,
+      "f1_macro": 0.3271,
+      "draw_recall": 0.0385,
+      "mse": 0.2246,
+      "rmse": 0.4738
+    },
+    {
+      "model": "gradient_boosting",
+      "log_loss": 1.121,
+      "accuracy": 0.3923,
+      "precision_macro": 0.3342,
+      "recall_macro": 0.3626,
+      "f1_macro": 0.3123,
+      "draw_recall": 0.0256,
+      "mse": 0.2257,
+      "rmse": 0.475
+    }
+  ],
+  "winning_model_on_test": "stacking",
+  "live_2026_metrics": {
+    "log_loss": 1.0702,
+    "accuracy": 0.4143,
+    "precision_macro": 0.2776,
+    "recall_macro": 0.3712,
+    "f1_macro": 0.3073,
+    "draw_recall": 0.0,
+    "mse": 0.2155,
+    "rmse": 0.4639
+  },
+  "top_features": [
+    {
+      "feature": "gd_diff_10",
+      "rf_importance": 0.0673459961173647,
+      "xgb_importance": 0.10788246989250183,
+      "mean_importance": 0.08761423300493326
+    },
+    {
+      "feature": "ppg_diff_10",
+      "rf_importance": 0.04775020783587784,
+      "xgb_importance": 0.036906544119119644,
+      "mean_importance": 0.04232837597749874
+    },
+    {
+      "feature": "gd_diff_5",
+      "rf_importance": 0.04759162619485639,
+      "xgb_importance": 0.02603074535727501,
+      "mean_importance": 0.0368111857760657
+    },
+    {
+      "feature": "h2h_gd",
+      "rf_importance": 0.03781225834836495,
+      "xgb_importance": 0.029021935537457466,
+      "mean_importance": 0.03341709694291121
+    },
+    {
+      "feature": "h2h_away_wr",
+      "rf_importance": 0.027059920600628905,
+      "xgb_importance": 0.03465738520026207,
+      "mean_importance": 0.03085865290044549
+    },
+    {
+      "feature": "home_gd_10",
+      "rf_importance": 0.03479481208921652,
+      "xgb_importance": 0.02654370665550232,
+      "mean_importance": 0.03066925937235942
+    },
+    {
+      "feature": "ppg_diff_5",
+      "rf_importance": 0.036245626231942496,
+      "xgb_importance": 0.022323239594697952,
+      "mean_importance": 0.029284432913320224
+    },
+    {
+      "feature": "away_ga_10",
+      "rf_importance": 0.02984523065679578,
+      "xgb_importance": 0.025545379146933556,
+      "mean_importance": 0.02769530490186467
+    },
+    {
+      "feature": "h2h_home_wr",
+      "rf_importance": 0.02334591798542518,
+      "xgb_importance": 0.029536930844187737,
+      "mean_importance": 0.026441424414806458
+    },
+    {
+      "feature": "away_gd_10",
+      "rf_importance": 0.029150337849960874,
+      "xgb_importance": 0.02338262088596821,
+      "mean_importance": 0.026266479367964543
+    }
+  ]
+}

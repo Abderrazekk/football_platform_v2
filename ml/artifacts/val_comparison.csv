@@ -1,0 +1,6 @@
+rank,model,uses_scaled,log_loss,accuracy,precision,recall,f1_score,mse,rmse,draw_recall
+1,random_forest,False,1.0049,0.5158,0.3401,0.44,0.3824,0.1995,0.4461,0.0
+2,logistic_regression,True,1.0192,0.5053,0.3329,0.4364,0.3776,0.2028,0.4496,0.0
+3,xgboost,False,1.0203,0.4789,0.3159,0.4071,0.3549,0.2024,0.4493,0.0
+4,gradient_boosting,False,1.0329,0.4842,0.4038,0.4144,0.3709,0.205,0.4521,0.0217
+5,decision_tree,False,1.5893,0.4421,0.3398,0.3858,0.3456,0.2138,0.4619,0.0217
