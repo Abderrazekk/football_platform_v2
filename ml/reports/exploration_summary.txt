@@ -1,0 +1,12 @@
+=== EXPLORATION SUMMARY (02_data_exploration.ipynb) ===
+Total rows in all_matches_raw.csv : 2350
+Total played matches              : 2350
+Duplicate rows                    : 0
+Unique teams (Match CSVs)         : 30
+
+--- BASELINES ---
+Majority-class baseline (Always H): 43.02%
+Draw (D) frequency                : 23.70%
+Away Win (A) frequency            : 33.28%
+Average goals per match           : 2.89
+Home advantage (goals/match)      : +0.23
