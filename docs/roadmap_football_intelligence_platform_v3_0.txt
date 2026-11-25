@@ -1,0 +1,709 @@
+==============================================================================
+  FOOTBALL INTELLIGENCE PLATFORM - PROJECT ROADMAP  (v3.0 - UPDATED)
+  Django + Machine Learning | Premier League 2020-21 -> 2026-27
+  Students: Abderazek BEL HADJ MBAREK & Ghazy Manai
+  Tekup | ING-4-J-SDIAF-B | 2026-2027
+  Aligned with: Cahier des charges v3.0 (4 ML Course Chapters + .ipynb Workflow)
+==============================================================================
+
+WHAT CHANGED COMPARED TO ROADMAP v2.0
+------------------------------------
+1. 100% JUPYTER NOTEBOOKS (.ipynb) FOR ML: Zero .py files in ml/ (no config.py,
+   no utils.py, no predict.py, no separate notebooks/ folder). Every ML step is
+   a self-contained .ipynb notebook executed top-to-bottom via
+   "Kernel -> Restart & Run All" (just like in your class TPs).
+2. DIRECT DJANGO BRIDGE (services.py): Django apps (matches/services.py,
+   players/services.py, season/services.py) load the exported .joblib models,
+   StandardScalers, and .json feature lists once at startup via joblib.load().
+3. STRICT RECYCLING OF THE 4 ML COURSE CHAPTERS:
+   - Chapter 1: Supervised vs. Unsupervised paradigms, chronological split,
+     zero data leakage, StandardScaler fitted strictly on the train set.
+   - Chapter 2: Multiple Linear Regression, Ridge (L2), Lasso (L1) evaluated
+     with MAE, RMSE, MSE, and R2.
+   - Chapter 3: Multinomial Logistic Regression (Softmax), Decision Tree
+     (Gini/Entropy), Bagging (Random Forest), Boosting (Gradient Boosting &
+     XGBoost), and Stacking (top 2 models + Logistic Regression meta-model)
+     evaluated with Confusion Matrix, Accuracy, Precision, Recall, F1-Score,
+     and Log Loss.
+   - Chapter 4: Unsupervised Clustering with K-Means (K chosen via Elbow
+     Method and Silhouette Coefficient) compared with DBSCAN / Hierarchical
+     Clustering to segment team and player playing styles.
+4. REMOVED OUT-OF-SCOPE ITEMS: Dropped PuLP, Brier score, Platt/isotonic
+   calibration, Spearman correlation, Poisson goals model, Monte-Carlo table
+   simulation, and optional walk-forward script 11. Best XI uses a simple
+   greedy algorithm under squad constraints.
+
+HOW TO USE THIS FILE
+--------------------
+- Work phase by phase. Do NOT start a phase before the previous one is "Done".
+- Each phase has: Goal, Tasks (checkboxes), Deliverables, Definition of Done.
+- Tick the boxes yourself: replace [ ] with [x].
+- Priorities: [M] must (MVP) | [S] should | [C] could (bonus, cut first if late)
+- Timeline assumes 10 weeks. Adjust it to your real deadline.
+
+OVERVIEW
+--------
+Phase 0  - Setup & project skeleton ............ Days 1-2
+Phase 1  - Data loading & exploration (.ipynb) . Week 1   (match_model 01-02)
+Phase 2  - Preprocessing, unification, SQLite .. Week 2   (match_model 03)
+Phase 3  - Feature engineering & split (.ipynb). Week 3   (match_model 04-05)
+Phase 4  - Classification, ensembling & stacking Week 4   (match_model 06-10)
+Phase 5  - Django MVP + CRUD favorites ......... Weeks 5-6 (MILESTONE: MVP freeze)
+Phase 6  - Team analysis, Clustering & Dashboards Week 6-7 (clustering_model 01)
+Phase 7  - Player regression models & pages .... Weeks 7-8 (player_model 01-04)
+Phase 8  - Season Ridge/Lasso & Greedy Best XI . Week 9   (season_model 01-02)
+Phase 9  - Polish, tests, security, docs ....... Week 10 (first half)
+Phase 10 - Report, demo & defense .............. Week 10 (second half)
+
+GOLDEN RULES (read them again at the start of every week)
+---------------------------------------------------------
+1. A small finished project beats a huge unfinished one. MVP first.
+2. Never train a model inside Django. Train in ml/*.ipynb, save .joblib, load
+   in apps/<app>/services.py.
+3. No data leakage: a match/gameweek feature may only use data from BEFORE
+   that match. Fit StandardScaler ONLY on train.csv.
+4. Always split by time (train 2020-24 / validation 2024-25 / test 2025-26),
+   never randomly. The test set is used ONCE, at the very end.
+5. Always compare to baselines. A model without a baseline means nothing.
+6. Commit to Git at least once per working day, with a clear message.
+7. Be honest about accuracy: 50-55% on H/D/A is already a good result.
+8. 100% .ipynb in ml/: every notebook must run cleanly from Cell 1 to the last
+   cell using "Kernel -> Restart & Run All" without errors.
+9. SIMPLE CODE: if you cannot explain a line in 10 seconds, rewrite it.
+10. One ML step = one .ipynb notebook reading one input and writing one output.
+
+CODING RULES (student-simple code)  -> applies to ML notebooks & Django
+-----------------------------------------------------------------------
+DO
+  - Short functions (about 20 lines max), one job per function.
+  - Clear names: train_matches, home_form_pts, load_clean_matches().
+  - Classic for loops and if statements, step by step.
+  - A Markdown cell at the top of EVERY .ipynb notebook explaining:
+        # NOTEBOOK : 03_preprocessing.ipynb
+        # ROLE     : Clean raw matches (team names, dates, missing values)
+        # INPUT    : ../../data/processed/all_matches_raw.csv
+        # OUTPUT   : ../../data/processed/clean_matches.csv
+  - Define paths, RANDOM_STATE = 42, season lists, and column lists in Cell 1
+    of each notebook.
+  - Print clear progress messages ("Loaded 2660 matches").
+  - Django: function-based views, logic and joblib.load() in services.py,
+    thin views.
+AVOID
+  - Metaclasses, custom decorators, nested comprehensions, lambda chains,
+    multiple inheritance, clever one-liners, over-engineering.
+  - Extra libraries: stay strictly with pandas, NumPy, scikit-learn, XGBoost,
+    joblib, matplotlib.
+
+TEAM WORKFLOW (2 students - ignore this section if you work alone)
+-------------------------------------------------------------------
+- Suggested split:
+    * Student A = ml/*.ipynb (match_model, clustering_model, player_model,
+      season_model) + artifact exports (.joblib, .json, figures).
+    * Student B = Django apps (accounts, matches, favorites, players, season,
+      templates, tests).
+    * Shared    = data import command, services.py bridge, tests, report, slides.
+- FIX THE CONTRACT EARLY: in Phase 0, Student B writes stub prediction
+  functions inside apps/matches/services.py, apps/players/services.py, and
+  apps/season/services.py returning dummy valid values. Once Student A runs
+  the notebooks and generates ml/artifacts/models/*.joblib, Student B swaps
+  the stub body with joblib.load() without changing function signatures.
+- Git: main branch always works. One branch per feature (feature/favorites,
+  feature/match-notebooks). Merge via pull request; the other student reviews.
+- 15-minute sync meeting twice a week; both students must be able to explain
+  the WHOLE project (both ML notebooks and Django) at the defense.
+
+
+==============================================================================
+PHASE 0 - SETUP & PROJECT SKELETON            (Days 1-2)
+==============================================================================
+GOAL: a clean, empty project that runs, with Git, a virtual environment, the
+folder structure from Cahier des Charges v3.0, and the data in place.
+
+TASKS
+[ ] [M] Install/verify: Python 3.11+ (3.10 minimum), Git, VS Code (with
+        Jupyter extension) or Jupyter Notebook, DB Browser for SQLite.
+[ ] [M] Create the project folder:  football_platform/
+[ ] [M] Create the virtual environment:
+          python -m venv .venv
+          Windows:   .venv\Scripts\activate
+          Linux/Mac: source .venv/bin/activate
+[ ] [M] Install base packages and freeze them (no PuLP needed):
+          pip install django pandas numpy scikit-learn xgboost joblib
+                      matplotlib jupyter pytest python-dotenv
+                      djangorestframework
+          pip freeze > requirements.txt
+[ ] [M] Create the Django project in the current folder:
+          django-admin startproject config .
+[ ] [M] Create the apps inside an apps/ folder (add an empty apps/__init__.py):
+          Windows:   mkdir apps\core apps\accounts apps\matches apps\favorites
+                           apps\players apps\season
+          Linux/Mac: mkdir -p apps/{core,accounts,matches,favorites,players,season}
+          python manage.py startapp core apps/core
+          python manage.py startapp accounts apps/accounts
+          python manage.py startapp matches apps/matches
+          python manage.py startapp favorites apps/favorites
+          python manage.py startapp players apps/players
+          python manage.py startapp season apps/season
+        IMPORTANT: in each apps/<name>/apps.py set  name = "apps.<name>"
+        and add "apps.<name>" to INSTALLED_APPS in config/settings.py.
+[ ] [M] Create the 100% .ipynb ML folder structure (zero .py files inside ml/):
+          ml/match_model/
+          ml/player_model/
+          ml/season_model/
+          ml/clustering_model/
+          ml/artifacts/models/
+          ml/reports/figures/
+[ ] [M] Create the remaining project folders:
+          data/raw/  data/processed/  templates/  static/  tests/  docs/
+[ ] [M] Create stub services.py files in apps/matches/, apps/players/, and
+        apps/season/ returning valid dummy predictions so Django development
+        can start immediately.
+[ ] [M] Copy your season folders (2020-21 ... 2026-27) into data/raw/.
+[ ] [M] Create .gitignore: .venv/, __pycache__/, db.sqlite3, *.pyc,
+        .ipynb_checkpoints/, .env, data/raw/ (if files are large).
+[ ] [M] Create .env.example (SECRET_KEY=..., DEBUG=True) and a local .env (not
+        in Git). Read them in settings.py with python-dotenv / os.environ.
+[ ] [M] git init, first commit "Initial project skeleton (v3.0)".
+        Create a private GitHub/GitLab repository, add your teammate, push.
+[ ] [M] Settings: set LANGUAGE_CODE = "fr", TIME_ZONE = "Africa/Tunis",
+        add TEMPLATES DIRS = [BASE_DIR / "templates"],
+        STATICFILES_DIRS = [BASE_DIR / "static"].
+[ ] [M] Run:  python manage.py migrate  then  python manage.py runserver
+        -> the Django welcome page must open.
+[ ] [S] Write a first README.md (project overview, install steps, notebook order).
+
+DELIVERABLES: running empty Django project, Git repo, requirements.txt,
+              ml/ notebook directories, stub services.py files.
+DONE WHEN: `python manage.py runserver` works and the first commit is pushed.
+
+
+==============================================================================
+PHASE 1 - DATA LOADING & EXPLORATION   (Week 1)     match_model 01 & 02 (.ipynb)
+==============================================================================
+GOAL: load all raw Premier League datasets and explore them thoroughly BEFORE
+modelling (Chapter 1 fundamentals).
+Notebooks: ml/match_model/01_data_loading.ipynb
+           ml/match_model/02_data_exploration.ipynb
+
+TASKS: NOTEBOOK 01 - DATA LOADING (01_data_loading.ipynb)
+[ ] [M] Read every E0_Season_XXXXYYYY.csv from ../../data/raw/, add a "season"
+        column, concatenate all seasons, and save
+        ../../data/processed/all_matches_raw.csv. Print row counts per season.
+
+TASKS: NOTEBOOK 02 - DATA EXPLORATION (02_data_exploration.ipynb)
+[ ] [M] Load all_matches_raw.csv and inspect: shape, columns, dtypes, head(),
+        describe(), missing values (isna().sum()), and duplicate rows.
+[ ] [M] Also inspect one season of each auxiliary file in data/raw/:
+          - master_gameweeks.csv
+          - master_player_gw.csv
+          - master_player_history.csv
+          - master_understat_teams.csv   (note: absent in 2025-26 and 2026-27)
+          - master_xP_projections.csv
+[ ] [M] Write the data dictionary: "file | column | meaning | type | used for"
+        and save it as docs/data_dictionary.md.
+[ ] [M] Check consistency across seasons: 380 matches per complete season,
+        column differences, played vs upcoming matches in 2026-27.
+[ ] [M] List ALL unique team names across files/seasons and spot mismatches
+        (e.g., "Man United" vs "Manchester Utd").
+[ ] [M] List player identifiers and positions (GK/DEF/MID/FWD), and check if
+        birth_date / age is present anywhere (for "best young player").
+[ ] [M] Compute BASELINE numbers on historical matches: % home wins (H),
+        % draws (D), % away wins (A), average goals per match, home advantage.
+[ ] [M] Plot simple matplotlib graphs (H/D/A class distribution, goals per
+        season, correlation heatmap) and save them to
+        ../reports/figures/ + write ../reports/exploration_summary.txt.
+[ ] [M] Run "Kernel -> Restart & Run All" on both 01 and 02 notebooks.
+
+DELIVERABLES: all_matches_raw.csv, 01 & 02 .ipynb notebooks, figures,
+              exploration_summary.txt, docs/data_dictionary.md.
+DONE WHEN: you can explain every column and know the majority-class baseline
+("always Home win" ~ 44-46% accuracy).
+
+
+==============================================================================
+PHASE 2 - PREPROCESSING, UNIFICATION & SQLITE   (Week 2)   match_model 03 (.ipynb)
+==============================================================================
+GOAL: clean, unified datasets + SQLite database populated via import_data.
+Notebook: ml/match_model/03_preprocessing.ipynb
+          (plus start ml/player_model/01_player_preprocessing.ipynb)
+
+TASKS: NOTEBOOK 03 - PREPROCESSING (03_preprocessing.ipynb)
+[ ] [M] Build a team-name mapping dict (raw name -> official name) and apply it
+        to ALL files. Save it in ../artifacts/team_mapping.json. Assert that
+        every complete season has exactly 20 unique mapped teams.
+[ ] [M] Parse match dates properly (dayfirst=True for football-data format)
+        and sort chronologically by date.
+[ ] [M] Fix data types (ints, floats, strings) and strip whitespace.
+[ ] [M] Handle missing values explicitly and document each choice:
+          - Understat xG/xGA absent in 2025-26 & 2026-27 -> drop xG columns
+            from the core match model (or impute using train-only averages) so
+            2025-26 test and 2026-27 predictions run seamlessly.
+          - Missing bookmaker odds -> keep NaN (never used as model features).
+[ ] [M] Remove duplicate or void matches.
+[ ] [M] Save ../../data/processed/clean_matches.csv.
+[ ] [M] Run "Kernel -> Restart & Run All" to verify clean execution.
+
+TASKS: PLAYER & TEAM CLEAN TABLES (start player_model/01_player_preprocessing.ipynb)
+[ ] [M] Harmonize player IDs / normalized player_key (lowercase, trimmed,
+        no accents) and standardize positions (GK/DEF/MID/FWD).
+[ ] [M] Export clean CSVs to data/processed/: player_gw.csv,
+        player_history.csv, teams.csv, players.csv.
+
+TASKS: DATA TESTS (tests/test_data.py)
+[ ] [M] Assert 380 matches/season for complete seasons, no duplicate
+        (date, home_team, away_team), all teams mapped, 20 teams/season,
+        and no negative player minutes.
+
+TASKS: DJANGO DATABASE & IMPORT
+[ ] [M] matches/models.py: Team (including cluster_label nullable), Season,
+        Match (with is_played boolean to separate played vs upcoming 2026-27
+        fixtures) (+ Prediction in Phase 5).
+[ ] [M] players/models.py: Player, PlayerSeasonStats, PlayerGameweekStats.
+[ ] [M] Run makemigrations and migrate.
+[ ] [M] Management command: apps/core/management/commands/import_data.py
+        - reads data/processed/*.csv and populates SQLite tables
+        - IDEMPOTENT (running twice creates zero duplicates via
+          update_or_create or --reset flag)
+        - uses bulk_create where appropriate for speed.
+[ ] [M] Register models in admin.py, create superuser, verify in /admin/.
+
+DELIVERABLES: clean_matches.csv, team_mapping.json, 03_preprocessing.ipynb,
+              Django models, import_data.py, populated db.sqlite3.
+DONE WHEN: `python manage.py import_data` populates SQLite cleanly and
+`tests/test_data.py` passes. MILESTONE J1 validated.
+
+
+==============================================================================
+PHASE 3 - FEATURE ENGINEERING & SPLIT   (Week 3)   match_model 04 & 05 (.ipynb)
+==============================================================================
+GOAL: leak-free chronological features and standardized train/val/test splits
+(Chapter 1 & Chapter 2 preprocessing rules).
+Notebooks: ml/match_model/04_feature_engineering.ipynb
+           ml/match_model/05_data_split.ipynb
+
+CONCEPT: iterate through clean_matches.csv in strict chronological order.
+For each match, compute features using ONLY matches with date < current date.
+
+TASKS: NOTEBOOK 04 - FEATURE ENGINEERING (04_feature_engineering.ipynb)
+[ ] [M] Target variable: FTR in {'H', 'D', 'A'} (and numeric encoding if needed).
+[ ] [M] Rolling team form (last 5 and last 10 matches, strictly prior):
+          - points per game (3 for win, 1 for draw, 0 for loss)
+          - average goals scored, average goals conceded, goal difference
+          - win rate
+[ ] [M] Venue-specific form:
+          - home team's last 5 home matches (points, goals for/against)
+          - away team's last 5 away matches (points, goals for/against)
+[ ] [M] Rest days since each team's previous match (capped, e.g. at 14 days).
+[ ] [M] Head-to-head (H2H) history across prior meetings in the dataset:
+          - H2H home win rate, draw rate, away win rate, average goal diff.
+[ ] [S] Season context: gameweek number and matches_played count per team.
+[ ] [M] Cold start handling: for the first matches of a season/promoted team,
+        fill missing rolling stats with league-average priors (computed without
+        future leakage) and drop the first 3 gameweeks of 2020-21 from training.
+[ ] [M] Save:
+          - ../../data/processed/features.csv (all matches + upcoming 2026-27)
+          - ../../data/processed/team_latest_state.csv (latest form & rest days
+            per team so Django's services.py can build features on the fly for
+            any user-selected match).
+
+TASKS: NOTEBOOK 05 - CHRONOLOGICAL SPLIT & SCALING (05_data_split.ipynb)
+[ ] [M] Split features.csv strictly by season:
+          - TRAIN      : 2020-21, 2021-22, 2022-23, 2023-24 -> train.csv
+          - VALIDATION : 2024-25                            -> val.csv
+          - TEST       : 2025-26                            -> test.csv
+          - LIVE (26/27): played matches of 2026-27         -> live_2026.csv
+[ ] [M] Verify max(train.date) < min(val.date) and max(val.date) < min(test.date).
+[ ] [M] Fit StandardScaler() ONLY on train.csv numeric features (essential for
+        Multinomial Logistic Regression in Chapter 3), transform train/val/test,
+        and save ../artifacts/models/match_scaler.joblib +
+        ../artifacts/features_list.json.
+[ ] [M] Run "Kernel -> Restart & Run All" on both 04 and 05 notebooks.
+[ ] [M] LEAKAGE TEST (tests/test_no_leakage.py): verify date ordering across
+        splits and assert that no post-kickoff columns (FTHG, FTAG, shots,
+        cards) exist in features_list.json.
+
+DELIVERABLES: 04 & 05 .ipynb notebooks, features.csv, team_latest_state.csv,
+              train.csv, val.csv, test.csv, match_scaler.joblib, leakage test.
+DONE WHEN: `tests/test_no_leakage.py` passes and both notebooks run cleanly.
+
+
+==============================================================================
+PHASE 4 - CLASSIFICATION, ENSEMBLING & STACKING   (Week 4)   match_model 06-10
+==============================================================================
+GOAL: train the 5 classification/ensemble models from Chapter 3, select the
+top 2 on validation, build Stacking, evaluate on test, and connect to Django.
+Notebooks (run in order): 06 -> 07 -> 08 -> 09 -> 10 (.ipynb)
+
+NOTEBOOK 06 - TRAIN MODELS (06_train_models.ipynb) -> train on TRAIN only
+[ ] [M] Model 1: Multinomial Logistic Regression (Softmax, max_iter=1000,
+        random_state=42, trained on scaled features).
+[ ] [M] Model 2: Decision Tree Classifier (criterion='gini' or 'entropy',
+        max_depth=5 to avoid overfitting, random_state=42).
+[ ] [M] Model 3 (Bagging): Random Forest Classifier (n_estimators=200,
+        max_depth=8, random_state=42).
+[ ] [M] Model 4 (Boosting): Gradient Boosting Classifier (n_estimators=150,
+        learning_rate=0.05, max_depth=3, random_state=42).
+[ ] [M] Model 5 (Boosting): XGBoost Classifier (objective='multi:softprob',
+        n_estimators=150, learning_rate=0.05, max_depth=3, random_state=42).
+[ ] [M] Save all 5 models to ../artifacts/models/<model_name>.joblib.
+
+NOTEBOOK 07 - SELECT BEST MODELS (07_select_best_models.ipynb) -> VALIDATION
+[ ] [M] Load all 5 models and predict class probabilities (H/D/A) on val.csv.
+[ ] [M] Compute course metrics on validation: Log Loss, Accuracy, F1-Score
+        (macro), Precision, Recall, and Draw Recall.
+[ ] [M] Rank models by Log Loss (lowest is best), select the top 2 models, and
+        save ../artifacts/best_two_models.json + validation comparison table.
+
+NOTEBOOK 08 - STACKING (08_stacking.ipynb) -> Chapter 3 Meta-Learning
+[ ] [M] Load the 2 best models from best_two_models.json.
+[ ] [M] Level 1: predict (P_H, P_D, P_A) probabilities on val.csv with both
+        models and concatenate them into a 6-column meta-feature matrix.
+[ ] [M] Level 2: train a simple Multinomial Logistic Regression meta-model on
+        those 6 probability columns to predict the true validation target.
+[ ] [M] Save ../artifacts/models/stacking_model.joblib as a dictionary:
+        {"model_1_name": ..., "model_2_name": ..., "model_1": m1,
+         "model_2": m2, "meta_model": meta}.
+[ ] [M] IMPORTANT: do NOT retrain model_1 or model_2 on train+val afterwards
+        (prevents data leakage into the meta-model).
+
+NOTEBOOK 09 - FINAL EVALUATION (09_evaluation.ipynb) -> TEST (used ONCE)
+[ ] [M] Baseline 1: always predict "Home win" (Accuracy + Log Loss).
+[ ] [M] Baseline 2: historical class frequencies from train.csv (Log Loss).
+[ ] [M] Evaluate all 5 individual models AND the Stacking model on test.csv
+        using strictly the course metrics from Chapter 3:
+          - Confusion Matrix (3x3 heatmap saved to ../reports/figures/)
+          - Accuracy, Precision (macro), Recall (macro), F1-Score (macro)
+          - Draw Recall (hardest class) and Log Loss
+[ ] [M] Extract feature importances (from Random Forest / XGBoost) and save top
+        features to feed "Facteurs clés" in Django.
+[ ] [M] Save ../artifacts/metrics.json (all test metrics, model comparison,
+        training date, library versions) + figures in ../reports/figures/.
+[ ] [S] Evaluate the winning model on live_2026.csv (2026-27 played matches).
+
+NOTEBOOK 10 - SAVE FINAL MODEL (10_save_final_model.ipynb)
+[ ] [M] Compare Stacking vs the best single model by Log Loss on test.csv:
+        keep Stacking as final model ONLY if it beats the best single model;
+        otherwise keep the best single model and explain why honestly.
+[ ] [M] Export ../artifacts/models/match_model.joblib (wrapping the winning
+        model + scaler + features_list in one clean dict/pipeline).
+[ ] [M] Run "Kernel -> Restart & Run All" on notebooks 06 through 10.
+
+DJANGO BRIDGE (apps/matches/services.py)
+[ ] [M] Replace the stub in apps/matches/services.py: load match_model.joblib
+        and team_latest_state.csv ONCE at module import, compute features for
+        (home_team, away_team), handle both single-model and stacking dicts,
+        and return {"home": p_h, "draw": p_d, "away": p_a} summing to 100%.
+
+REALISTIC TARGETS: ~50-55% Accuracy; Log Loss strictly better than both
+baselines.
+
+DELIVERABLES: notebooks 06-10, match_model.joblib, metrics.json, figures,
+              working apps/matches/services.py.
+DONE WHEN: calling predict_match("Arsenal", "Chelsea") in Django shell returns
+valid probabilities in < 2 seconds. MILESTONE J2 validated.
+
+
+==============================================================================
+PHASE 5 - DJANGO MVP + CRUD FAVORITES   (Weeks 5-6)
+==============================================================================
+GOAL: working web application: register, log in, predict a match, view
+history, manage favorite teams (full CRUD).
+
+WEEK 5 - ACCOUNTS & MATCH PREDICTION
+[ ] [M] accounts app: register view (UserCreationForm), login, logout,
+        LOGIN_URL / LOGIN_REDIRECT_URL in settings.py.
+[ ] [M] matches/models.py: Prediction (user, home_team, away_team, match
+        nullable, p_home, p_draw, p_away, predicted_result, actual_result
+        nullable, model_version, created_at). Run makemigrations + migrate.
+[ ] [M] matches/services.py:
+          - predict(home_team, away_team) -> probabilities + key factors
+          - save_prediction(user, ...) -> Prediction
+          - h2h_summary(team_a, team_b), recent_form(team, n=5)
+[ ] [M] matches/forms.py: PredictionForm (two ModelChoiceFields) validating
+        that home_team != away_team.
+[ ] [M] matches/views.py (function-based, thin views): predict_view,
+        history_view, prediction_detail_view, delete_prediction_view.
+        Use @login_required and filter by request.user (404 on others' items).
+[ ] [M] Error handling: missing .joblib file or unknown team shows a clean
+        user message instead of a 500 crash.
+
+WEEK 6 - CRUD "MES EQUIPES FAVORITES" (apps/favorites)
+[ ] [M] favorites/models.py: FavoriteTeam(user, team, priority, note,
+        created_at) with priority choices (1=Haute, 2=Moyenne, 3=Basse),
+        note max_length=200 (optional), unique constraint (user, team). Migrate.
+[ ] [M] favorites/forms.py: FavoriteTeamForm (disable team field on update).
+[ ] [M] favorites/views.py (@login_required, function-based):
+          - favorite_list   (READ list sorted by priority + 5-match form)
+          - favorite_create (CREATE, /favorites/add/)
+          - favorite_detail (READ detail, /favorites/<id>/)  [S]
+          - favorite_update (UPDATE, /favorites/<id>/edit/)
+          - favorite_delete (DELETE with confirmation, /favorites/<id>/delete/)
+[ ] [M] OWNERSHIP & MESSAGES: filter every query by request.user with
+        get_object_or_404; display Django messages ("Équipe ajoutée",
+        "Favori modifié", "Favori supprimé") and friendly duplicate errors.
+[ ] [M] Templates: favorites/list.html, form.html, confirm_delete.html,
+        detail.html; register in admin.py.
+[ ] [M] Tests (favorites/tests.py): create, duplicate rejected, list scoped to
+        user, update, delete, cross-user 404 check, anonymous redirect.
+
+WEEK 6 - FRONTEND & MVP POLISH
+[ ] [M] templates/base.html: Tailwind CSS layout, navbar (Accueil, Prédire,
+        Historique, Mes favoris, Équipes, Joueurs, Saison, Performance ML,
+        Connexion/Déconnexion), messages block, footer.
+[ ] [M] home.html, predict.html (3 probability cards + Chart.js donut chart +
+        recent form + H2H + key factors), history.html (paginated table +
+        verdict badge + delete), login.html, register.html.
+[ ] [S] Upcoming fixtures page (/matches/upcoming/) with "Prédire" button.
+[ ] [M] Django tests for accounts and matches; commit + tag `v0.1-mvp`.
+
+DELIVERABLES: functional MVP running locally, including the favorites CRUD.
+DONE WHEN: a user can register, log in, predict a match, inspect history, and
+create/read/update/delete favorite teams. MILESTONE J3: MVP FREEZE.
+
+
+==============================================================================
+PHASE 6 - TEAM ANALYSIS, CLUSTERING & DASHBOARDS   (Weeks 6-7)
+==============================================================================
+GOAL: team statistics pages + Chapter 4 Unsupervised Clustering profiles +
+Model Performance dashboard.
+Notebook: ml/clustering_model/01_team_player_clustering.ipynb
+
+TASKS: CHAPTER 4 CLUSTERING NOTEBOOK (01_team_player_clustering.ipynb)
+[ ] [M] Aggregate team seasonal attacking & defensive metrics (goals scored/
+        conceded per game, shots, shots on target, home vs away points) and
+        player seasonal metrics from data/processed/.
+[ ] [M] Standardize features with StandardScaler() (mandatory for distance-
+        based clustering).
+[ ] [M] Run K-Means for K = 2 to 8:
+          - Plot the Elbow Method curve (inertia vs K)
+          - Plot the Silhouette Coefficient curve (silhouette_score vs K)
+          - Save both plots to ../reports/figures/
+[ ] [M] Select optimal K (e.g. K = 3 or 4), fit final K-Means, and interpret
+        each cluster centroid (e.g., "Attaque dominante", "Bloc défensif",
+        "Équipe équilibrée").
+[ ] [S] Compare K-Means clusters with DBSCAN and Hierarchical Clustering
+        (AgglomerativeClustering) to spot outlier teams/players.
+[ ] [M] Save ../artifacts/models/clustering_model.joblib, update
+        ../artifacts/metrics.json with Silhouette scores, and export
+        ../../data/processed/team_clusters.csv.
+[ ] [M] Run "Kernel -> Restart & Run All" and re-run `import_data` so each
+        Team in SQLite stores its `cluster_label`.
+
+TASKS: DJANGO TEAM & PERFORMANCE PAGES
+[ ] [S] Teams list (/teams/) showing season standings + assigned K-Means
+        cluster badge, and team detail (/teams/<id>/) with Chart.js trends.
+[ ] [S] Compare two teams page (side-by-side / radar stats + cluster profile).
+[ ] [S] "Performance des modèles" page (/model/performance/): display
+        metrics.json across all 4 chapters (Classification & Stacking table +
+        confusion matrix image, Regression metrics, Clustering Elbow/Silhouette
+        plots).
+[ ] [S] Dashboard KPIs on home.html (matches played, 2026-27 accuracy, user
+        prediction success rate).
+
+DELIVERABLES: 01_team_player_clustering.ipynb, clustering_model.joblib,
+              team pages with cluster profiles, /model/performance/ page.
+DONE WHEN: teams display their K-Means tactical profile and /model/performance/
+renders all course metrics and charts.
+
+
+==============================================================================
+PHASE 7 - PLAYER REGRESSION MODELS & PAGES   (Weeks 7-8)
+==============================================================================
+GOAL: predict expected gameweek points per player using Chapter 2 & 3
+regressors -> player comparison, match stars, players at risk.
+Notebooks: ml/player_model/01_player_preprocessing.ipynb
+           ml/player_model/02_player_features.ipynb
+           ml/player_model/03_player_split_train.ipynb
+           ml/player_model/04_player_evaluation_save.ipynb
+
+WEEK 7 - PLAYER REGRESSION NOTEBOOKS
+[ ] [M] 01_player_preprocessing.ipynb: finalize cleaning of master_player_gw.csv
+        -> ../../data/processed/clean_players.csv.
+[ ] [M] 02_player_features.ipynb: target = player points in gameweek t.
+        Build strictly prior rolling features (last 3 & 5 gameweeks): minutes,
+        points, BPS, goals, assists, xG/xA (if available), one-hot position
+        (GK/DEF/MID/FWD), home/away flag, opponent defensive strength ->
+        ../../data/processed/player_features.csv.
+[ ] [M] 03_player_split_train.ipynb: SAME chronological split (train 2020-24 /
+        val 2024-25 / test 2025-26), StandardScaler fitted on train, and train
+        5 regressors from Chapters 2 & 3:
+          - Multiple Linear Regression
+          - Ridge Regression (L2 regularization, tune alpha on validation)
+          - Lasso Regression (L1 regularization, tune alpha on validation)
+          - Random Forest Regressor (Bagging)
+          - XGBoost Regressor (Boosting)
+[ ] [M] 04_player_evaluation_save.ipynb: evaluate all 5 models + rolling-
+        average baseline on test.csv using strictly Chapter 2 metrics:
+          - MAE, RMSE, MSE, and R2 (plus top-1 & top-3 match-star hit rate).
+        Save winning model + scaler to ../artifacts/models/player_model.joblib
+        and append metrics to ../artifacts/metrics.json.
+[ ] [M] Run "Kernel -> Restart & Run All" on all 4 player notebooks.
+[ ] [M] Connect apps/players/services.py to player_model.joblib.
+
+WEEK 8 - DJANGO PLAYERS MODULE
+[ ] [S] Player search & detail page (/players/, /players/<id>/): season stats,
+        form chart, cluster profile.
+[ ] [S] Compare two players (/players/compare/): side-by-side stats + expected
+        points for next fixture.
+[ ] [S] Match stars (/players/match-stars/): top 3 expected performers and
+        "joueurs à risque" (lowest expected points among starters) for a match,
+        with an honest note about individual match variance.
+[ ] [M] Tests for players services and views.
+
+DELIVERABLES: 4 player .ipynb notebooks, player_model.joblib, players module.
+DONE WHEN: users can compare two players and view top-3 predicted players for
+an upcoming match. MILESTONE J4 validated.
+
+
+==============================================================================
+PHASE 8 - SEASON REGULARIZED REGRESSION & BEST XI   (Week 9)
+==============================================================================
+GOAL: project 2026-27 total season points using Chapter 2 Ridge/Lasso
+regression and build the Best XI with a simple greedy selector.
+Notebooks: ml/season_model/01_season_features.ipynb
+           ml/season_model/02_season_train_eval_save.ipynb
+
+TASKS: SEASON NOTEBOOKS
+[ ] [M] 01_season_features.ipynb: build one row per (player, season) from
+        master_player_history.csv using prior-season totals (minutes, points,
+        goals, assists, price, position) -> ../../data/processed/season_features.csv.
+[ ] [M] 02_season_train_eval_save.ipynb:
+          - Train Multiple Linear Regression, Ridge (L2), and Lasso (L1) on
+            season-to-season transitions (tuning lambda on validation).
+          - Evaluate with MAE, RMSE, and R2; inspect Lasso zeroed coefficients
+            (feature selection from Chapter 2).
+          - Save winning model to ../artifacts/models/season_model.joblib and
+            append metrics to ../artifacts/metrics.json.
+[ ] [M] Run "Kernel -> Restart & Run All" on both season notebooks.
+
+TASKS: DJANGO SEASON MODULE (apps/season/)
+[ ] [M] Connect apps/season/services.py to season_model.joblib and cache
+        computed forecasts in the SeasonForecast table.
+[ ] [S] Best player 2026-27 (/season/best-player/): top 10 projected points.
+[ ] [S] Best young player (/season/best-young/): filter by age < 22 (or
+        1st/2nd Premier League season fallback if birth_date is missing).
+[ ] [S] Best XI (/season/best-xi/): simple greedy selection algorithm (sort by
+        projected points/value and pick 15 players = 2 GK + 5 DEF + 5 MID +
+        3 FWD, total price <= 100.0M, max 3 players per club, valid 11-player
+        starting formation + captain).
+[ ] [C] Projected final table (/season/table/) based on match probabilities.
+[ ] [M] Tests for greedy squad constraints and season views.
+
+DELIVERABLES: 2 season .ipynb notebooks, season_model.joblib, season pages.
+DONE WHEN: /season/best-xi/ displays a valid 15-man squad and starting XI
+respecting all position, club, and budget rules.
+
+
+==============================================================================
+PHASE 9 - POLISH, TESTS, SECURITY & DOCUMENTATION   (Week 10, first half)
+==============================================================================
+GOAL: stable, tested, secure, well-documented project ready for defense.
+
+TASKS
+[ ] [M] Run full test suite: `python manage.py test` and `pytest tests/`
+        (test_data.py, test_no_leakage.py, test_models.py, Django app tests).
+[ ] [M] Verify every .ipynb notebook executes cleanly from top to bottom via
+        "Kernel -> Restart & Run All" with saved outputs visible.
+[ ] [M] Test every page as visitor, authenticated user, and admin; test
+        favorites CRUD isolation with TWO separate user accounts.
+[ ] [M] Security checklist: SECRET_KEY in .env, DEBUG=False check, CSRF on all
+        POST forms, @login_required + user ownership checks on predictions and
+        favorites.
+[ ] [M] UI polish: consistent Tailwind theme, mobile responsiveness, empty
+        states, friendly error pages (404/500).
+[ ] [M] Documentation:
+          - Update README.md with exact setup instructions and the exact
+            execution order of all .ipynb notebooks:
+              1. ml/match_model/01_data_loading.ipynb -> 10_save_final_model.ipynb
+              2. ml/clustering_model/01_team_player_clustering.ipynb
+              3. ml/player_model/01_player_preprocessing.ipynb -> 04_player_evaluation_save.ipynb
+              4. ml/season_model/01_season_features.ipynb -> 02_season_train_eval_save.ipynb
+              5. python manage.py migrate
+              6. python manage.py import_data
+              7. python manage.py runserver
+          - Finalize docs/data_dictionary.md.
+[ ] [M] Prepare a demo SQLite database with a demo user, sample predictions,
+        and favorite teams; test a fresh Git clone from README; tag `v1.0-final`.
+
+DONE WHEN: a fresh clone runs end-to-end by following README.md only.
+MILESTONE J5: project complete and frozen.
+
+
+==============================================================================
+PHASE 10 - REPORT, DEMO & DEFENSE   (Week 10, second half)
+==============================================================================
+GOAL: deliver a clear, convincing presentation to both ML and Django professors.
+
+REPORT OUTLINE
+[ ] [M] 1. Introduction & problem  2. Data description  3. Preprocessing &
+        leak-free features  4. Modelling aligned with the 4 ML chapters
+        (Classification & Stacking, Player/Season Ridge & Lasso Regression,
+        K-Means Clustering)  5. Evaluation results (Confusion Matrix, F1, Log
+        Loss, MAE, RMSE, R2, Silhouette)  6. Django MVT architecture & CRUD
+        favorites  7. Tests & security  8. Limits & future work  9. Conclusion.
+
+SLIDES (12-15 slides, ~15-20 minutes)
+[ ] [M] 1 Title  2 Problem & goals  3 Data  4 Architecture (ml/*.ipynb ->
+        .joblib -> Django services.py)  5 Leak-free features & chronological
+        split  6 Match Classification, Ensembling & Stacking (Ch. 1 & 3)
+        7 Results vs baselines  8 Player & Season Ridge/Lasso Regression (Ch. 2)
+        9 Team & Player K-Means Clustering (Ch. 4)  10 Django App + CRUD
+        Favorites  11 LIVE DEMO  12 Limits  13 Future work  14 Conclusion/Q&A.
+
+DEMO SCRIPT (rehearse 3 times + save backup screenshots)
+  1. Log in as the demo user.
+  2. Predict an upcoming Premier League match -> show H/D/A probabilities,
+     chart, recent form, H2H, and key factors.
+  3. Open Prediction History -> show verdicts and detail/delete.
+  4. Favorites CRUD: add a favorite team, edit priority/note, delete it.
+  5. Show Teams list & detail with K-Means tactical cluster profiles.
+  6. Show Match Stars & Compare Two Players (Regression expected points).
+  7. Show 2026-27 Season Predictions (Best Player, Best Young, Greedy Best XI).
+  8. Open "Performance des modèles" (/model/performance/) and explain the
+     metrics from all 4 chapters + open one .ipynb notebook to show clean code.
+
+LIKELY DEFENSE QUESTIONS & ANSWERS
+  - Why only .ipynb notebooks in ml/ and no .py scripts? (Consistent with our
+    TP workflow; each notebook is one reproducible step exporting .joblib/.json
+    artifacts that Django's services.py loads once at startup.)
+  - How did you avoid data leakage? (Chronological split 2020-24 / 2024-25 /
+    2025-26, strictly past rolling windows, StandardScaler fitted only on train.)
+  - How did you apply all 4 ML chapters? (Ch. 1 paradigms & split; Ch. 2
+    Linear/Ridge/Lasso regression with MAE/RMSE/MSE/R2; Ch. 3 LogReg, Decision
+    Tree, Bagging RF, Boosting GB/XGBoost & Stacking with Confusion Matrix,
+    F1 & Log Loss; Ch. 4 K-Means with Elbow & Silhouette + DBSCAN comparison.)
+  - Why train the Stacking meta-model on the validation season? (Preserves
+    chronological order and avoids out-of-fold leakage across seasons.)
+  - How is Best XI built without PuLP? (A transparent greedy algorithm that
+    ranks players by Ridge/Lasso projected points while enforcing 2 GK / 5 DEF /
+    5 MID / 3 FWD, <= 100M budget, and max 3 players per club.)
+
+DONE WHEN: report submitted, slides finalized, live demo rehearsed, backup
+screenshots saved, and Git tag `v1.0-final` pushed.
+
+
+==============================================================================
+IF YOU ARE BEHIND SCHEDULE: CUT LIST (cut from the top, in this order)
+==============================================================================
+1. All [C] features (projected final table, API REST).
+2. DBSCAN / Hierarchical comparison in clustering (keep K-Means + Elbow +
+   Silhouette).
+3. Team radar comparison page and live_2026 evaluation block.
+4. NEVER cut: Match classification + Stacking + baselines (Ch. 3), Player &
+   Season Ridge/Lasso regression (Ch. 2), K-Means team clustering (Ch. 4),
+   100% .ipynb pipeline, FAVORITES CRUD, tests, authentication, README.
+
+==============================================================================
+CONTRIBUTION MAP (what each professor will look for)
+==============================================================================
+MACHINE LEARNING : Clean .ipynb notebooks (one per step), zero data leakage,
+                   chronological split, baselines, Chapter 3 classification &
+                   Stacking (Confusion Matrix, Accuracy, F1, Log Loss),
+                   Chapter 2 Ridge/Lasso regression (MAE, RMSE, MSE, R2),
+                   Chapter 4 K-Means clustering (Elbow & Silhouette), honest
+                   analysis of limits.
+DJANGO           : Multi-app MVT architecture, ORM models/migrations, forms,
+                   authentication, FULL CRUD (predictions + favorites with
+                   ownership check), Tailwind templates, services.py bridge
+                   loading .joblib artifacts, admin, automated tests.
+==============================================================================
