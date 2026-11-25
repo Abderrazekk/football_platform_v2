@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{{ favorite.team.name }} - Favori{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>{{ favorite.team.name }}</h2>
+  <div>
+    <a href="{% url 'favorites:update' favorite.pk %}" class="btn btn-outline-secondary btn-sm">Modifier</a>
+    <a href="{% url 'favorites:delete' favorite.pk %}" class="btn btn-outline-danger btn-sm">Supprimer</a>
+    <a href="{% url 'favorites:list' %}" class="btn btn-outline-primary btn-sm">Retour</a>
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <p><strong>Priorité :</strong> {{ favorite.get_priority_display }}</p>
+    <p><strong>Note :</strong> {{ favorite.note|default:"Aucune note." }}</p>
+    <p class="mb-0"><strong>Ajoutée le :</strong> {{ favorite.created_at|date:"d/m/Y H:i" }}</p>
+  </div>
+</div>
+
+<h4>5 derniers matchs ({{ form_5.ppg }} PPG)</h4>
+{% if form_5.matches %}
+  <ul class="list-group">
+    {% for m in form_5.matches %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <span>{{ m.date }} — {{ m.venue }} vs <strong>{{ m.opponent }}</strong> ({{ m.score }})</span>
+        <span class="badge {% if m.result == 'W' %}bg-success{% elif m.result == 'D' %}bg-secondary{% else %}bg-danger{% endif %}">{{ m.result }}</span>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="text-muted">Aucun match récent trouvé.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Mes Équipes Favorites{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2>Mes Équipes Favorites</h2>
+  <a href="{% url 'favorites:create' %}" class="btn btn-primary">+ Ajouter une équipe</a>
+</div>
+
+{% if items %}
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th>Équipe</th>
+          <th>Priorité</th>
+          <th>Forme (5 derniers)</th>
+          <th>Note</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td>
+            <a href="{% url 'favorites:detail' item.favorite.pk %}" class="fw-semibold text-decoration-none">
+              {{ item.favorite.team.name }}
+            </a>
+          </td>
+          <td>
+            <span class="badge {% if item.favorite.priority == 1 %}bg-danger{% elif item.favorite.priority == 2 %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+              {{ item.favorite.get_priority_display }}
+            </span>
+          </td>
+          <td>
+            {% for r in item.form_5.results %}
+              <span class="badge {% if r == 'W' %}bg-success{% elif r == 'D' %}bg-secondary{% else %}bg-danger{% endif %}">{{ r }}</span>
+            {% empty %}
+              <span class="text-muted">N/A</span>
+            {% endfor %}
+            {% if item.form_5.results %}
+              <small class="text-muted ms-1">({{ item.form_5.ppg }} PPG)</small>
+            {% endif %}
+          </td>
+          <td>{{ item.favorite.note|default:"—" }}</td>
+          <td class="text-end">
+            <a href="{% url 'favorites:update' item.favorite.pk %}" class="btn btn-sm btn-outline-secondary">Modifier</a>
+            <a href="{% url 'favorites:delete' item.favorite.pk %}" class="btn btn-sm btn-outline-danger">Supprimer</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="alert alert-info">
+    Vous n'avez encore aucune équipe favorite. <a href="{% url 'favorites:create' %}">Ajoutez-en une</a>.
+  </div>
+{% endif %}
+{% endblock %}

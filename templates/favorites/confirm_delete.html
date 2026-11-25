@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Supprimer {{ favorite.team.name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card border-danger">
+      <div class="card-body">
+        <h4 class="card-title text-danger">Confirmer la suppression</h4>
+        <p>Voulez-vous vraiment retirer <strong>{{ favorite.team.name }}</strong> de vos équipes favorites ?</p>
+        <form method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">Oui, supprimer</button>
+          <a href="{% url 'favorites:list' %}" class="btn btn-outline-secondary">Annuler</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
