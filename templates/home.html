@@ -7,24 +7,59 @@
     Prédictions Football par Machine Learning
   </h1>
   <p class="mt-4 text-slate-600 max-w-2xl mx-auto">
-    Analysez la forme récente, les confrontations directes (H2H) et les probabilités 1X2
-    pour chaque affiche, puis suivez vos équipes favorites.
+    Analysez la forme récente, les profils tactiques K-Means, les confrontations directes (H2H)
+    et les probabilités 1X2 pour chaque affiche de Premier League.
   </p>
   <div class="mt-8 flex flex-wrap justify-center gap-4">
     <a href="{% url 'matches:predict' %}"
        class="px-6 py-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-sm transition">
       Prédire un match
     </a>
-    <a href="{% url 'matches:upcoming' %}"
+    <a href="{% url 'teams_list' %}"
        class="px-6 py-3 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-semibold transition">
-      Matchs à venir
+      Explorer les équipes
     </a>
-    {% if user.is_authenticated %}
-      <a href="{% url 'favorites:list' %}"
-         class="px-6 py-3 rounded-lg border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold transition">
-        Mes favoris
-      </a>
-    {% endif %}
+    <a href="{% url 'model_performance' %}"
+       class="px-6 py-3 rounded-lg border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold transition">
+      Performance ML
+    </a>
+  </div>
+</section>
+
+<!-- Dashboard KPIs -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+  <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+    <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Matchs analysés (BDD)</p>
+    <p class="text-3xl font-extrabold text-slate-900 mt-2">{{ kpis.matches_played }}</p>
+    <p class="text-xs text-slate-400 mt-1">Premier League 2020-21 → 2026-27</p>
+  </div>
+
+  <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+    <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Précision Live 2026-27</p>
+    <p class="text-3xl font-extrabold text-emerald-600 mt-2">
+      {% if kpis.live_2026_accuracy != None %}{{ kpis.live_2026_accuracy }}%{% else %}N/A{% endif %}
+    </p>
+    <p class="text-xs text-slate-400 mt-1">Modèle actif : {{ kpis.winning_model }}</p>
+  </div>
+
+  <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+    <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Votre taux de réussite</p>
+    <p class="text-3xl font-extrabold text-blue-600 mt-2">
+      {% if kpis.user_success_rate != None %}
+        {{ kpis.user_success_rate }}%
+      {% elif user.is_authenticated %}
+        {{ kpis.user_total_predictions }} préd.
+      {% else %}
+        —
+      {% endif %}
+    </p>
+    <p class="text-xs text-slate-400 mt-1">
+      {% if user.is_authenticated %}
+        {% if kpis.user_success_rate != None %}Sur vos prédictions évaluées{% else %}En attente des résultats finaux{% endif %}
+      {% else %}
+        Connectez-vous pour suivre vos stats
+      {% endif %}
+    </p>
   </div>
 </section>
 {% endblock %}

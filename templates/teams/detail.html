@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}{{ team.name }} — Analyse Équipe{% endblock %}
+
+{% block content %}
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+  <div>
+    <h1 class="text-3xl font-extrabold text-slate-900">{{ team.name }}</h1>
+    {% if team.cluster_label %}
+      <span class="inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+        Profil K-Means : {{ team.cluster_label }}
+      </span>
+    {% endif %}
+  </div>
+  <div class="flex gap-2">
+    <a href="{% url 'team_compare' %}?team_a={{ team.pk }}"
+       class="px-4 py-2 rounded-lg bg-slate-900 hover:bg-emerald-600 text-white text-sm font-semibold transition">
+      Comparer
+    </a>
+    <a href="{% url 'teams_list' %}"
+       class="px-4 py-2 rounded-lg border border-slate-300 hover:bg-slate-50 text-sm font-semibold">
+      ← Retour
+    </a>
+  </div>
+</div>
+
+<!-- Summary KPIs (last 15 matches) -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+  <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+    <p class="text-xs text-slate-500 uppercase">Points / Match (15 derniers)</p>
+    <p class="text-2xl font-extrabold text-emerald-600 mt-1">{{ trend.summary.ppg }}</p>
+  </div>
+  <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+    <p class="text-xs text-slate-500 uppercase">Bilan (V-N-D)</p>
+    <p class="text-2xl font-extrabold text-slate-900 mt-1">{{ trend.summary.wins }}-{{ trend.summary.draws }}-{{ trend.summary.losses }}</p>
+  </div>
+  <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+    <p class="text-xs text-slate-500 uppercase">Buts marqués / match</p>
+    <p class="text-2xl font-extrabold text-blue-600 mt-1">{{ trend.summary.avg_gf }}</p>
+  </div>
+  <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+    <p class="text-xs text-slate-500 uppercase">Buts encaissés / match</p>
+    <p class="text-2xl font-extrabold text-amber-600 mt-1">{{ trend.summary.avg_ga }}</p>
+  </div>
+</div>
+
+<!-- Chart.js Trends -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+  <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+    <h2 class="text-base font-semibold mb-4">Progression des points cumulés (15 derniers matchs)</h2>
+    <canvas id="pointsTrendChart" height="160"></canvas>
+  </div>
+  <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+    <h2 class="text-base font-semibold mb-4">Buts marqués vs encaissés</h2>
+    <canvas id="goalsTrendChart" height="160"></canvas>
+  </div>
+</div>
+
+<!-- Recent Matches Table -->
+<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+  <div class="p-4 border-b border-slate-200 font-semibold">Derniers matchs joués</div>
+  <table class="min-w-full divide-y divide-slate-200 text-sm">
+    <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+      <tr>
+        <th class="px-4 py-2 text-left">Date</th>
+        <th class="px-4 py-2 text-left">Adversaire</th>
+        <th class="px-4 py-2 text-center">Lieu</th>
+        <th class="px-4 py-2 text-center">Score</th>
+        <th class="px-4 py-2 text-center">Résultat</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100">
+      {% for m in trend.recent_matches %}
+        <tr>
+          <td class="px-4 py-2 text-slate-500">{{ m.date|date:"d/m/Y" }}</td>
+          <td class="px-4 py-2 font-medium">{{ m.opponent }}</td>
+          <td class="px-4 py-2 text-center text-xs text-slate-500">{{ m.venue }}</td>
+          <td class="px-4 py-2 text-center font-semibold">{{ m.score }}</td>
+          <td class="px-4 py-2 text-center">
+            <span class="px-2 py-0.5 rounded text-xs font-bold text-white
+              {% if m.result == 'W' %}bg-emerald-500{% elif m.result == 'D' %}bg-amber-400{% else %}bg-red-500{% endif %}">
+              {{ m.result }}
+            </span>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{{ trend.labels|json_script:"trend-labels" }}
+{{ trend.cum_points|json_script:"trend-points" }}
+{{ trend.gf_series|json_script:"trend-gf" }}
+{{ trend.ga_series|json_script:"trend-ga" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+  const labels = JSON.parse(document.getElementById('trend-labels').textContent);
+  const points = JSON.parse(document.getElementById('trend-points').textContent);
+  const gf = JSON.parse(document.getElementById('trend-gf').textContent);
+  const ga = JSON.parse(document.getElementById('trend-ga').textContent);
+
+  new Chart(document.getElementById('pointsTrendChart'), {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Points cumulés',
+        data: points,
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16,185,129,0.12)',
+        fill: true,
+        tension: 0.3
+      }]
+    }
+  });
+
+  new Chart(document.getElementById('goalsTrendChart'), {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: 'Buts marqués', data: gf, backgroundColor: '#2563eb' },
+        { label: 'Buts encaissés', data: ga, backgroundColor: '#ef4444' }
+      ]
+    }
+  });
+</script>
+{% endblock %}

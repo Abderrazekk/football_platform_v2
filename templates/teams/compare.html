@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Comparer deux équipes — Football AI{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+    <h1 class="text-2xl font-bold text-slate-900 mb-4">Comparateur d'Équipes (Radar + Profils)</h1>
+    <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Équipe A</label>
+        <select name="team_a" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+          {% for t in teams %}
+            <option value="{{ t.pk }}" {% if team_a and t.pk == team_a.pk %}selected{% endif %}>{{ t.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Équipe B</label>
+        <select name="team_b" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+          {% for t in teams %}
+            <option value="{{ t.pk }}" {% if team_b and t.pk == team_b.pk %}selected{% endif %}>{{ t.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit"
+              class="w-full py-2 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition">
+        Comparer
+      </button>
+    </form>
+  </div>
+
+  {% if stats_a and stats_b %}
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Side-by-side table -->
+    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+      <h2 class="text-lg font-semibold mb-4">Face-à-face statistique (par match)</h2>
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-slate-200 text-xs uppercase text-slate-500">
+            <th class="py-2 text-left text-emerald-700">{{ team_a.name }}</th>
+            <th class="py-2 text-center">Métrique</th>
+            <th class="py-2 text-right text-blue-700">{{ team_b.name }}</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr>
+            <td class="py-2.5 font-semibold">{{ team_a.cluster_label|default:"—" }}</td>
+            <td class="py-2.5 text-center text-slate-500">Profil K-Means</td>
+            <td class="py-2.5 text-right font-semibold">{{ team_b.cluster_label|default:"—" }}</td>
+          </tr>
+          <tr>
+            <td class="py-2.5 font-bold">{{ stats_a.goals_for_pg }}</td>
+            <td class="py-2.5 text-center text-slate-500">Buts marqués / m</td>
+            <td class="py-2.5 text-right font-bold">{{ stats_b.goals_for_pg }}</td>
+          </tr>
+          <tr>
+            <td class="py-2.5 font-bold">{{ stats_a.goals_against_pg }}</td>
+            <td class="py-2.5 text-center text-slate-500">Buts encaissés / m</td>
+            <td class="py-2.5 text-right font-bold">{{ stats_b.goals_against_pg }}</td>
+          </tr>
+          <tr>
+            <td class="py-2.5 font-bold">{{ stats_a.shots_pg }}</td>
+            <td class="py-2.5 text-center text-slate-500">Tirs / m</td>
+            <td class="py-2.5 text-right font-bold">{{ stats_b.shots_pg }}</td>
+          </tr>
+          <tr>
+            <td class="py-2.5 font-bold">{{ stats_a.shots_on_target_pg }}</td>
+            <td class="py-2.5 text-center text-slate-500">Tirs cadrés / m</td>
+            <td class="py-2.5 text-right font-bold">{{ stats_b.shots_on_target_pg }}</td>
+          </tr>
+          <tr>
+            <td class="py-2.5 font-bold">{{ stats_a.home_ppg }}</td>
+            <td class="py-2.5 text-center text-slate-500">Pts / m (Domicile)</td>
+            <td class="py-2.5 text-right font-bold">{{ stats_b.home_ppg }}</td>
+          </tr>
+          <tr>
+            <td class="py-2.5 font-bold">{{ stats_a.away_ppg }}</td>
+            <td class="py-2.5 text-center text-slate-500">Pts / m (Extérieur)</td>
+            <td class="py-2.5 text-right font-bold">{{ stats_b.away_ppg }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Radar Chart -->
+    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col items-center">
+      <h2 class="text-lg font-semibold mb-4">Radar Tactique</h2>
+      <div class="w-full max-w-md">
+        <canvas id="teamRadarChart"></canvas>
+      </div>
+    </div>
+  </div>
+  {% else %}
+    <div class="p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+      Exécutez le notebook de clustering (`team_clusters.csv`) pour activer le comparateur radar.
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if stats_a and stats_b %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+  new Chart(document.getElementById('teamRadarChart'), {
+    type: 'radar',
+    data: {
+      labels: ['Buts / m', 'Solidité déf. (3 - BC)', 'Tirs cadrés / m', 'PPG Dom.', 'PPG Ext.'],
+      datasets: [
+        {
+          label: '{{ team_a.name|escapejs }}',
+          data: [
+            {{ stats_a.goals_for_pg|stringformat:"f" }},
+            Math.max(0, 3 - {{ stats_a.goals_against_pg|stringformat:"f" }}),
+            {{ stats_a.shots_on_target_pg|stringformat:"f" }},
+            {{ stats_a.home_ppg|stringformat:"f" }},
+            {{ stats_a.away_ppg|stringformat:"f" }}
+          ],
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16,185,129,0.2)'
+        },
+        {
+          label: '{{ team_b.name|escapejs }}',
+          data: [
+            {{ stats_b.goals_for_pg|stringformat:"f" }},
+            Math.max(0, 3 - {{ stats_b.goals_against_pg|stringformat:"f" }}),
+            {{ stats_b.shots_on_target_pg|stringformat:"f" }},
+            {{ stats_b.home_ppg|stringformat:"f" }},
+            {{ stats_b.away_ppg|stringformat:"f" }}
+          ],
+          borderColor: '#2563eb',
+          backgroundColor: 'rgba(37,99,235,0.2)'
+        }
+      ]
+    },
+    options: { scales: { r: { beginAtZero: true } } }
+  });
+</script>
+{% endif %}
+{% endblock %}

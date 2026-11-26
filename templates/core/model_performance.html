@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}Performance des Modèles ML — Football AI{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+  <div>
+    <h1 class="text-3xl font-extrabold text-slate-900">Performance des Modèles ML</h1>
+    <p class="text-sm text-slate-500 mt-1">
+      Synthèse complète issue de <code class="bg-slate-100 px-1.5 py-0.5 rounded">ml/artifacts/metrics.json</code>
+      {% if metrics.evaluated_at_utc %} — Évalué le {{ metrics.evaluated_at_utc|slice:":10" }}{% endif %}.
+    </p>
+  </div>
+
+  <!-- CHAPTER 3: CLASSIFICATION & STACKING -->
+  <section class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-6">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <h2 class="text-xl font-bold text-slate-900">1. Classification & Stacking (Prédiction de Matchs)</h2>
+      {% if metrics.winning_model_on_test %}
+        <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+          Modèle retenu : {{ metrics.winning_model_on_test }}
+        </span>
+      {% endif %}
+    </div>
+
+    {% if metrics.test_model_comparison %}
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-slate-200 text-sm">
+        <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+          <tr>
+            <th class="px-4 py-2 text-left">Modèle</th>
+            <th class="px-4 py-2 text-center">Log Loss ↓</th>
+            <th class="px-4 py-2 text-center">Accuracy ↑</th>
+            <th class="px-4 py-2 text-center">F1 Macro ↑</th>
+            <th class="px-4 py-2 text-center">Precision</th>
+            <th class="px-4 py-2 text-center">Recall</th>
+            <th class="px-4 py-2 text-center">RMSE ↓</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for row in metrics.test_model_comparison %}
+            <tr class="{% if row.model == metrics.winning_model_on_test %}bg-emerald-50/60 font-semibold{% endif %}">
+              <td class="px-4 py-2.5">{{ row.model }}</td>
+              <td class="px-4 py-2.5 text-center">{{ row.log_loss }}</td>
+              <td class="px-4 py-2.5 text-center">{{ row.accuracy }}</td>
+              <td class="px-4 py-2.5 text-center">{{ row.f1_macro }}</td>
+              <td class="px-4 py-2.5 text-center">{{ row.precision_macro }}</td>
+              <td class="px-4 py-2.5 text-center">{{ row.recall_macro }}</td>
+              <td class="px-4 py-2.5 text-center">{{ row.rmse }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {% if figures.confusion_matrix %}
+        <div class="border border-slate-200 rounded-lg p-3">
+          <p class="text-xs font-semibold text-slate-500 mb-2">Matrice de Confusion (Test)</p>
+          <img src="{% url 'ml_figure' figures.confusion_matrix %}" alt="Confusion Matrix" class="w-full rounded">
+        </div>
+      {% endif %}
+      {% if figures.top_features %}
+        <div class="border border-slate-200 rounded-lg p-3">
+          <p class="text-xs font-semibold text-slate-500 mb-2">Top 10 Features Importances</p>
+          <img src="{% url 'ml_figure' figures.top_features %}" alt="Feature Importances" class="w-full rounded">
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- CHAPTER 4: CLUSTERING -->
+  <section class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-6">
+    <h2 class="text-xl font-bold text-slate-900">2. Clustering Non Supervisé (K-Means, Hiérarchique, DBSCAN)</h2>
+
+    {% if metrics.clustering %}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+      <div class="p-4 rounded-lg bg-slate-50 border border-slate-200">
+        <p class="text-xs text-slate-500 uppercase">Équipes — Silhouette K-Means (K={{ metrics.clustering.teams.optimal_k }})</p>
+        <p class="text-2xl font-extrabold text-emerald-600 mt-1">{{ metrics.clustering.teams.kmeans_silhouette }}</p>
+        <p class="text-xs text-slate-500 mt-1">Hiérarchique : {{ metrics.clustering.teams.hierarchical_silhouette }}</p>
+      </div>
+      <div class="p-4 rounded-lg bg-slate-50 border border-slate-200">
+        <p class="text-xs text-slate-500 uppercase">Joueurs — Silhouette K-Means (K={{ metrics.clustering.players.optimal_k }})</p>
+        <p class="text-2xl font-extrabold text-blue-600 mt-1">{{ metrics.clustering.players.kmeans_silhouette }}</p>
+        <p class="text-xs text-slate-500 mt-1">{{ metrics.clustering.players.n_players_clustered }} joueurs segmentés</p>
+      </div>
+      <div class="p-4 rounded-lg bg-slate-50 border border-slate-200">
+        <p class="text-xs text-slate-500 uppercase">Équipes atypiques (DBSCAN)</p>
+        <p class="text-sm font-semibold text-slate-800 mt-2">
+          {{ metrics.clustering.teams.dbscan_outliers|join:", "|default:"Aucun outlier détecté" }}
+        </p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {% if figures.team_elbow %}
+        <div class="border border-slate-200 rounded-lg p-3">
+          <p class="text-xs font-semibold text-slate-500 mb-2">Elbow & Silhouette — Équipes</p>
+          <img src="{% url 'ml_figure' figures.team_elbow %}" alt="Team Elbow & Silhouette" class="w-full rounded">
+        </div>
+      {% endif %}
+      {% if figures.team_profiles %}
+        <div class="border border-slate-200 rounded-lg p-3">
+          <p class="text-xs font-semibold text-slate-500 mb-2">Profils Tactiques des Équipes</p>
+          <img src="{% url 'ml_figure' figures.team_profiles %}" alt="Team Tactical Profiles" class="w-full rounded">
+        </div>
+      {% endif %}
+    </div>
+    {% else %}
+      <p class="text-sm text-slate-500">Exécutez le notebook de clustering pour afficher ces métriques.</p>
+    {% endif %}
+  </section>
+
+  <!-- CHAPTER 2: REGRESSION (READY FOR PHASE 7) -->
+  <section class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+    <h2 class="text-xl font-bold text-slate-900 mb-3">3. Régression (Prédiction de Points Joueurs)</h2>
+    {% if metrics.regression %}
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+        <div class="p-4 bg-slate-50 rounded-lg border">
+          <p class="text-xs text-slate-500">Modèle retenu</p>
+          <p class="text-lg font-bold">{{ metrics.regression.best_model }}</p>
+        </div>
+        <div class="p-4 bg-slate-50 rounded-lg border">
+          <p class="text-xs text-slate-500">RMSE</p>
+          <p class="text-lg font-bold">{{ metrics.regression.rmse }}</p>
+        </div>
+        <div class="p-4 bg-slate-50 rounded-lg border">
+          <p class="text-xs text-slate-500">MAE</p>
+          <p class="text-lg font-bold">{{ metrics.regression.mae }}</p>
+        </div>
+        <div class="p-4 bg-slate-50 rounded-lg border">
+          <p class="text-xs text-slate-500">R²</p>
+          <p class="text-lg font-bold">{{ metrics.regression.r2 }}</p>
+        </div>
+      </div>
+    {% else %}
+      <p class="text-sm text-slate-500">
+        Les métriques de régression joueurs (RMSE, MAE, R²) s'afficheront automatiquement ici après la Phase 7.
+      </p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

@@ -16,12 +16,18 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
-from django.views.generic import TemplateView
+from apps.core import views as core_views
 
 urlpatterns = [
-    path("", TemplateView.as_view(template_name="home.html"), name="home"),
+    path("", core_views.home_view, name="home"),
     path("admin/", admin.site.urls),
     path("accounts/", include("apps.accounts.urls")),
     path("matches/", include("apps.matches.urls")),
     path("favorites/", include("apps.favorites.urls")),
+    # Phase 6: Teams & Model Performance
+    path("teams/", core_views.teams_list_view, name="teams_list"),
+    path("teams/compare/", core_views.team_compare_view, name="team_compare"),
+    path("teams/<int:pk>/", core_views.team_detail_view, name="team_detail"),
+    path("model/performance/", core_views.model_performance_view, name="model_performance"),
+    path("ml-figures/<str:filename>/", core_views.ml_figure_view, name="ml_figure"),
 ]
