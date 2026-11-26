@@ -51,6 +51,19 @@ class Command(BaseCommand):
             team_map[team_obj.name] = team_obj
         self.stdout.write(f"Teams synced: {len(team_map)}")
 
+        # 1b. Sync Team Cluster Labels (if clustering notebook has run)
+        team_clusters_file = processed_dir / "team_clusters.csv"
+        if team_clusters_file.exists():
+            tc_df = pd.read_csv(team_clusters_file)
+            updated_teams = 0
+            for _, row in tc_df.iterrows():
+                t_obj = team_map.get(str(row["team_name"]).strip())
+                if t_obj:
+                    t_obj.cluster_label = str(row["cluster_label"]).strip()
+                    t_obj.save(update_fields=["cluster_label"])
+                    updated_teams += 1
+            self.stdout.write(f"Team clusters synced: {updated_teams}")
+
         # 2. Import Seasons & Matches
         matches_df = pd.read_csv(processed_dir / "clean_matches.csv")
         season_map = {}
@@ -106,6 +119,19 @@ class Command(BaseCommand):
             )
             player_map[p_key] = p_obj
         self.stdout.write(f"Players synced: {len(player_map)}")
+
+        # 3b. Sync Player Cluster Labels (if clustering notebook has run)
+        player_clusters_file = processed_dir / "player_clusters.csv"
+        if player_clusters_file.exists():
+            pc_df = pd.read_csv(player_clusters_file)
+            updated_players = 0
+            for _, row in pc_df.iterrows():
+                p_obj = player_map.get(str(row["player_key"]).strip())
+                if p_obj:
+                    p_obj.cluster_label = str(row["cluster_label"]).strip()
+                    p_obj.save(update_fields=["cluster_label"])
+                    updated_players += 1
+            self.stdout.write(f"Player clusters synced: {updated_players}")
 
         # 4. Import Player Season History
         hist_df = pd.read_csv(processed_dir / "player_history.csv", low_memory=False)

@@ -1,0 +1,31 @@
+team_name,matches_played,goals_for_pg,goals_against_pg,shots_pg,shots_on_target_pg,home_ppg,away_ppg,cluster_id,cluster_label,agg_cluster,dbscan_cluster
+Arsenal,235,1.898,0.957,14.821,5.043,2.188,1.898,2,Attaque dominante,2,-1
+Aston Villa,235,1.511,1.353,12.596,4.477,1.752,1.381,3,Équipe équilibrée,3,0
+Bournemouth,159,1.358,1.579,13.258,4.616,1.412,1.177,3,Équipe équilibrée,0,0
+Brentford,197,1.503,1.442,11.487,4.305,1.545,1.122,0,Bloc défensif,0,0
+Brighton,235,1.489,1.34,14.06,4.864,1.542,1.282,3,Équipe équilibrée,3,0
+Burnley,152,0.961,1.717,10.388,3.388,0.816,0.763,1,Équipe en difficulté,1,0
+Chelsea,235,1.651,1.221,14.417,5.166,1.735,1.517,3,Équipe équilibrée,3,0
+Coventry,7,0.857,2.0,10.286,3.286,1.0,0.75,1,Équipe en difficulté,1,0
+Crystal Palace,235,1.23,1.438,11.366,3.983,1.342,1.136,0,Bloc défensif,0,0
+Everton,235,1.111,1.374,11.489,3.928,1.305,1.154,0,Bloc défensif,0,0
+Fulham,197,1.244,1.431,12.569,4.096,1.343,1.071,0,Bloc défensif,0,0
+Hull,7,1.143,1.0,10.714,3.429,1.667,1.0,0,Bloc défensif,0,0
+Ipswich,45,1.044,2.156,10.067,3.511,0.591,0.783,1,Équipe en difficulté,1,0
+Leeds,159,1.321,1.717,12.792,4.258,1.338,0.987,0,Bloc défensif,0,0
+Leicester,152,1.408,1.691,10.993,4.059,1.263,1.066,0,Bloc défensif,0,0
+Liverpool,235,2.047,1.098,17.357,5.957,2.205,1.763,2,Attaque dominante,2,-1
+Luton,38,1.368,2.237,11.342,3.711,0.842,0.526,1,Équipe en difficulté,1,0
+Man City,235,2.298,0.898,16.664,6.081,2.424,2.077,2,Attaque dominante,2,-1
+Man United,235,1.566,1.345,14.604,5.238,1.855,1.441,3,Équipe équilibrée,3,0
+Newcastle,235,1.591,1.426,13.06,4.574,1.754,1.205,3,Équipe équilibrée,3,0
+Norwich,38,0.605,2.211,9.842,2.868,0.632,0.526,1,Équipe en difficulté,1,0
+Nottingham Forest,159,1.245,1.516,11.811,3.855,1.288,1.076,0,Bloc défensif,0,0
+Sheffield United,76,0.724,2.197,9.118,3.0,0.684,0.342,1,Équipe en difficulté,1,0
+Southampton,152,1.0,1.934,10.954,3.875,0.908,0.671,1,Équipe en difficulté,1,0
+Sunderland,45,1.067,1.378,10.578,3.422,1.636,0.957,0,Bloc défensif,0,0
+Tottenham,235,1.698,1.451,13.06,4.894,1.602,1.325,3,Équipe équilibrée,3,0
+Watford,38,0.895,2.026,10.421,3.342,0.421,0.789,1,Équipe en difficulté,1,0
+West Brom,38,0.921,2.0,8.947,2.947,0.789,0.579,1,Équipe en difficulté,1,0
+West Ham,228,1.386,1.553,11.864,3.974,1.447,1.14,0,Bloc défensif,0,0
+Wolves,228,1.035,1.557,10.987,3.759,1.237,0.912,0,Bloc défensif,0,0

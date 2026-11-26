@@ -40,7 +40,7 @@
       "f1_macro": 0.3273,
       "draw_recall": 0.0,
       "mse": 0.2177,
-      "rmse": 0.4665     
+      "rmse": 0.4665
     },
     {
       "model": "logistic_regression",
@@ -170,5 +170,55 @@
       "xgb_importance": 0.02338262088596821,
       "mean_importance": 0.026266479367964543
     }
-  ]
+  ],
+  "clustering": {
+    "teams": {
+      "optimal_k": 4,
+      "kmeans_silhouette": 0.4494,
+      "hierarchical_silhouette": 0.4496,
+      "dbscan_clusters": 1,
+      "dbscan_outliers": [
+        "Arsenal",
+        "Liverpool",
+        "Man City"
+      ],
+      "elbow_curve": {
+        "2": 79.41,
+        "3": 40.1,
+        "4": 23.96,
+        "5": 20.2,
+        "6": 16.48,
+        "7": 14.35,
+        "8": 12.28
+      },
+      "silhouette_curve": {
+        "2": 0.4408,
+        "3": 0.4477,
+        "4": 0.4494,
+        "5": 0.387,
+        "6": 0.3712,
+        "7": 0.335,
+        "8": 0.3301
+      },
+      "profiles": {
+        "2": "Attaque dominante",
+        "3": "Équipe équilibrée",
+        "0": "Bloc défensif",
+        "1": "Équipe en difficulté"
+      }
+    },
+    "players": {
+      "optimal_k": 4,
+      "n_players_clustered": 1069,
+      "kmeans_silhouette": 0.2318,
+      "hierarchical_silhouette": 0.1981,
+      "dbscan_outliers_count": 43,
+      "profiles": {
+        "1": "Star offensive",
+        "3": "Créateur influent",
+        "2": "Titulaire régulier",
+        "0": "Profil défensif / Soutien"
+      }
+    }
+  }
 }
