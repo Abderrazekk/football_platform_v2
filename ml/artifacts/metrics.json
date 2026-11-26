@@ -40,7 +40,7 @@
       "f1_macro": 0.3273,
       "draw_recall": 0.0,
       "mse": 0.2177,
-      "rmse": 0.4665
+      "rmse": 0.4665     
     },
     {
       "model": "logistic_regression",
@@ -163,12 +163,6 @@
       "rf_importance": 0.02334591798542518,
       "xgb_importance": 0.029536930844187737,
       "mean_importance": 0.026441424414806458
-    },
-    {
-      "feature": "away_gd_10",
-      "rf_importance": 0.029150337849960874,
-      "xgb_importance": 0.02338262088596821,
-      "mean_importance": 0.026266479367964543
     }
   ]
 }
