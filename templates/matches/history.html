@@ -1,76 +1,87 @@
 {% extends "base.html" %}
 {% block title %}Historique — Football AI{% endblock %}
-
 {% block content %}
-<div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-  <div class="p-6 border-b border-slate-200 flex items-center justify-between">
-    <h1 class="text-xl font-bold text-slate-900">Historique des prédictions</h1>
-    <a href="{% url 'matches:predict' %}"
-       class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold">
+<div class="max-w-5xl mx-auto space-y-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-slate-900">
+      Historique des prédictions
+    </h1>
+    <a
+      href="{% url 'matches:predict' %}"
+      class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition"
+    >
       + Nouvelle prédiction
     </a>
   </div>
 
-  <div class="overflow-x-auto">
-    <table class="min-w-full divide-y divide-slate-200 text-sm">
-      <thead class="bg-slate-50 text-left text-xs uppercase text-slate-500">
+  {% if predictions %}
+  <div
+    class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"
+  >
+    <table class="w-full text-sm text-left">
+      <thead class="bg-slate-50 text-slate-600 uppercase text-xs">
         <tr>
-          <th class="px-6 py-3">Date</th>
-          <th class="px-6 py-3">Match</th>
-          <th class="px-6 py-3">Probabilités (1 / X / 2)</th>
-          <th class="px-6 py-3">Verdict</th>
-          <th class="px-6 py-3 text-right">Action</th>
+          <th class="px-4 py-3">Match</th>
+          <th class="px-4 py-3">Domicile</th>
+          <th class="px-4 py-3">Nul</th>
+          <th class="px-4 py-3">Extérieur</th>
+          <th class="px-4 py-3">Verdict</th>
+          <th class="px-4 py-3 text-right">Actions</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-slate-100">
-        {% for item in page_obj %}
-          <tr class="hover:bg-slate-50">
-            <td class="px-6 py-4 text-slate-500">{{ item.created_at|date:"d/m/Y H:i" }}</td>
-            <td class="px-6 py-4 font-medium text-slate-900">{{ item.home_team }} vs {{ item.away_team }}</td>
-            <td class="px-6 py-4 text-slate-600">
-              {{ item.prob_home|floatformat:0 }}% / {{ item.prob_draw|floatformat:0 }}% / {{ item.prob_away|floatformat:0 }}%
-            </td>
-            <td class="px-6 py-4">
-              <span class="px-2.5 py-1 rounded-full text-xs font-semibold
-                {% if item.predicted_outcome == 'H' %}bg-emerald-100 text-emerald-800
-                {% elif item.predicted_outcome == 'D' %}bg-amber-100 text-amber-800
-                {% else %}bg-blue-100 text-blue-800{% endif %}">
-                {{ item.get_predicted_outcome_display|default:item.predicted_outcome }}
-              </span>
-            </td>
-            <td class="px-6 py-4 text-right">
-              <form method="post" action="{% url 'matches:delete' item.pk %}" class="inline">
-                {% csrf_token %}
-                <button type="submit" class="text-red-600 hover:text-red-800 font-medium text-xs">
-                  Supprimer
-                </button>
-              </form>
-            </td>
-          </tr>
-        {% empty %}
-          <tr>
-            <td colspan="5" class="px-6 py-8 text-center text-slate-400">
-              Aucune prédiction enregistrée pour le moment.
-            </td>
-          </tr>
+        {% for item in predictions %}
+        <tr class="hover:bg-slate-50">
+          <td class="px-4 py-3 font-medium text-slate-900">
+            {{ item.home_team }} vs {{ item.away_team }}
+          </td>
+          <td class="px-4 py-3 text-emerald-600 font-semibold">
+            {{ item.p_home|floatformat:1 }}%
+          </td>
+          <td class="px-4 py-3 text-amber-500 font-semibold">
+            {{ item.p_draw|floatformat:1 }}%
+          </td>
+          <td class="px-4 py-3 text-blue-600 font-semibold">
+            {{ item.p_away|floatformat:1 }}%
+          </td>
+          <td class="px-4 py-3">
+            <span
+              class="px-2.5 py-1 rounded-full text-xs font-bold {% if item.predicted_result == 'H' %}bg-emerald-100 text-emerald-800 {% elif item.predicted_result == 'D' %}bg-amber-100 text-amber-800 {% else %}bg-blue-100 text-blue-800{% endif %}"
+            >
+              {{ item.get_predicted_result_display }}
+            </span>
+          </td>
+          <td class="px-4 py-3 text-right space-x-2">
+            <a
+              href="{% url 'matches:prediction_detail' item.pk %}"
+              class="text-slate-700 hover:underline font-medium"
+              >Voir</a
+            >
+            <form
+              method="post"
+              action="{% url 'matches:delete_prediction' item.pk %}"
+              class="inline"
+            >
+              {% csrf_token %}
+              <button
+                type="submit"
+                class="text-red-600 hover:underline font-medium"
+              >
+                Supprimer
+              </button>
+            </form>
+          </td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
-
-  <!-- Pagination -->
-  {% if page_obj.has_other_pages %}
-    <div class="p-4 border-t border-slate-200 flex items-center justify-between text-sm">
-      <span>Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}</span>
-      <div class="flex gap-2">
-        {% if page_obj.has_previous %}
-          <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1 rounded border hover:bg-slate-50">Précédent</a>
-        {% endif %}
-        {% if page_obj.has_next %}
-          <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1 rounded border hover:bg-slate-50">Suivant</a>
-        {% endif %}
-      </div>
-    </div>
+  {% else %}
+  <div
+    class="bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-500"
+  >
+    Aucune prédiction enregistrée pour le moment.
+  </div>
   {% endif %}
 </div>
 {% endblock %}

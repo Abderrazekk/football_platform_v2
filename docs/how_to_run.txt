@@ -1,0 +1,134 @@
+HOW TO RUN THE FOOTBALL INTELLIGENCE PLATFORM (v3.0)
+====================================================
+
+Repository: https://github.com/Abderrazekk/football_platform_v2.git
+Stack: Python 3.12+ / Django 6.1 / SQLite / scikit-learn & XGBoost
+
+This file lists the exact commands needed after cloning the project.
+
+----------------------------------------------------
+1. CLONE THE PROJECT
+----------------------------------------------------
+git clone https://github.com/Abderrazekk/football_platform_v2.git
+cd football_platform_v2
+
+----------------------------------------------------
+2. CREATE AND ACTIVATE A VIRTUAL ENVIRONMENT
+----------------------------------------------------
+Windows (PowerShell):
+    python -m venv .venv
+    .\.venv\Scripts\Activate.ps1
+
+macOS / Linux:
+    python3 -m venv .venv
+    source .venv/bin/activate
+
+If PowerShell blocks the activation script, run this once:
+    Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+
+----------------------------------------------------
+3. INSTALL DEPENDENCIES
+----------------------------------------------------
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+
+----------------------------------------------------
+4. CREATE THE .env FILE
+----------------------------------------------------
+Windows (PowerShell):
+    Copy-Item .env.example .env
+
+macOS / Linux:
+    cp .env.example .env
+
+The example file already contains a development SECRET_KEY and DEBUG=True,
+so it works as-is for local development.
+
+Optional: generate a new secret key and put it in .env
+    python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+
+----------------------------------------------------
+5. CREATE THE DATABASE TABLES
+----------------------------------------------------
+python manage.py migrate
+
+----------------------------------------------------
+6. IMPORT THE DATA (REQUIRED)
+----------------------------------------------------
+python manage.py import_data
+
+This command loads the cleaned CSV files from data/processed/ into SQLite:
+teams, seasons, matches, players and player statistics.
+It is idempotent, so it can be run again safely.
+
+To wipe the data tables and re-import everything:
+    python manage.py import_data --reset
+
+The cleaned datasets and the ML models (ml/artifacts/) are included in the
+repository. The data/raw/ folder is NOT included and is only needed to
+re-run the ML notebooks from scratch.
+
+----------------------------------------------------
+7. CREATE AN ADMIN ACCOUNT (OPTIONAL)
+----------------------------------------------------
+python manage.py createsuperuser
+
+----------------------------------------------------
+8. RUN THE DEVELOPMENT SERVER
+----------------------------------------------------
+python manage.py runserver
+
+Open in the browser:
+    http://127.0.0.1:8000/
+
+Admin panel:
+    http://127.0.0.1:8000/admin/
+
+----------------------------------------------------
+9. RUN THE TESTS (OPTIONAL)
+----------------------------------------------------
+python -m pytest
+
+----------------------------------------------------
+10. RUN THE ML NOTEBOOKS (OPTIONAL)
+----------------------------------------------------
+The trained models are already provided in ml/artifacts/models/.
+To retrain them, run the notebooks with "Kernel -> Restart & Run All",
+in this order:
+
+1. ml/match_model/01_data_loading.ipynb  ->  ml/match_model/10_save_final_model.ipynb
+2. ml/clustering_model/01_team_player_clustering.ipynb
+3. ml/player_model/01_player_preprocessing.ipynb  ->  ml/player_model/04_player_evaluation_save.ipynb
+4. ml/season_model/01_season_features.ipynb  ->  ml/season_model/02_season_train_eval_save.ipynb
+
+Starting Jupyter (optional):
+    jupyter notebook
+
+Note: re-running the notebooks requires the raw season folders in data/raw/.
+
+----------------------------------------------------
+QUICK START (all essential commands)
+----------------------------------------------------
+git clone https://github.com/Abderrazekk/football_platform_v2.git
+cd football_platform_v2
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+Copy-Item .env.example .env
+python manage.py migrate
+python manage.py import_data
+python manage.py runserver
+
+----------------------------------------------------
+TROUBLESHOOTING
+----------------------------------------------------
+- "No module named django": the virtual environment is not activated, or
+  dependencies were not installed. Activate .venv and re-run pip install.
+- "Activate.ps1 cannot be loaded": see the Set-ExecutionPolicy command above.
+- Empty pages / no matches: run "python manage.py import_data".
+- "SECRET_KEY" error: make sure the .env file exists at the project root.
+- Notebook files (.ipynb) are not shown in VS Code: install the Jupyter
+  extension and select .venv as the Python interpreter.
+- Port 8000 already in use:
+    python manage.py runserver 8001

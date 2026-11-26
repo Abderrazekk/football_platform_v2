@@ -33,9 +33,7 @@ def predict_view(request):
 
 @login_required
 def history_view(request):
-    predictions = Prediction.objects.filter(user=request.user).select_related(
-        "home_team", "away_team"
-    )
+    predictions = Prediction.objects.filter(user=request.user).order_by("-created_at")
     return render(request, "matches/history.html", {"predictions": predictions})
 
 

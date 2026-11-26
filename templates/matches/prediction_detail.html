@@ -1,0 +1,194 @@
+{% extends "base.html" %} {% block title %}Résultat de la prédiction — Football
+AI{% endblock %} {% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-slate-900">
+      {{ prediction.home_team }} vs {{ prediction.away_team }}
+    </h1>
+    <a
+      href="{% url 'matches:predict' %}"
+      class="px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold transition"
+    >
+      ← Nouvelle prédiction
+    </a>
+  </div>
+
+  <!-- 3 Probability Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div
+      class="bg-white rounded-xl border border-slate-200 p-5 text-center shadow-sm"
+    >
+      <p class="text-xs uppercase tracking-wider text-slate-500">
+        Victoire {{ prediction.home_team }}
+      </p>
+      <p class="text-3xl font-extrabold text-emerald-600 mt-1">
+        {{ prediction.p_home|floatformat:1 }}%
+      </p>
+    </div>
+    <div
+      class="bg-white rounded-xl border border-slate-200 p-5 text-center shadow-sm"
+    >
+      <p class="text-xs uppercase tracking-wider text-slate-500">Match Nul</p>
+      <p class="text-3xl font-extrabold text-amber-500 mt-1">
+        {{ prediction.p_draw|floatformat:1 }}%
+      </p>
+    </div>
+    <div
+      class="bg-white rounded-xl border border-slate-200 p-5 text-center shadow-sm"
+    >
+      <p class="text-xs uppercase tracking-wider text-slate-500">
+        Victoire {{ prediction.away_team }}
+      </p>
+      <p class="text-3xl font-extrabold text-blue-600 mt-1">
+        {{ prediction.p_away|floatformat:1 }}%
+      </p>
+    </div>
+  </div>
+
+  <!-- Donut Chart + Verdict -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div
+      class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col items-center"
+    >
+      <h2 class="text-lg font-semibold mb-4">Répartition des probabilités</h2>
+      <div class="w-60 h-60">
+        <canvas id="resultDonutChart"></canvas>
+      </div>
+    </div>
+
+    <div
+      class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col justify-center space-y-4"
+    >
+      <h2 class="text-lg font-semibold">Verdict du modèle</h2>
+      <div>
+        <span
+          class="px-3 py-1.5 rounded-full text-sm font-bold {% if prediction.predicted_result == 'H' %}bg-emerald-100 text-emerald-800 {% elif prediction.predicted_result == 'D' %}bg-amber-100 text-amber-800 {% else %}bg-blue-100 text-blue-800{% endif %}"
+        >
+          {{ prediction.get_predicted_result_display }}
+        </span>
+      </div>
+      <p class="text-xs text-slate-400">
+        Modèle : {{ prediction.model_version }}
+      </p>
+      <p class="text-sm text-slate-500">
+        Prédiction enregistrée dans votre
+        <a
+          href="{% url 'matches:history' %}"
+          class="text-emerald-600 font-semibold hover:underline"
+          >historique</a
+        >.
+      </p>
+    </div>
+  </div>
+
+  <!-- Key Factors -->
+  {% if key_factors %}
+  <div
+    class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-3"
+  >
+    <h2 class="text-lg font-semibold">Facteurs clés</h2>
+    <ul class="space-y-2 text-sm text-slate-700">
+      {% for factor in key_factors %}
+      <li class="flex items-start gap-2">
+        <span class="text-emerald-500 font-bold">•</span>
+        <span>{{ factor }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <!-- Recent Form & H2H -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+      <h2 class="text-lg font-semibold mb-3">
+        Forme récente (5 derniers matchs)
+      </h2>
+      <div class="space-y-3 text-sm">
+        <div class="flex items-center justify-between">
+          <span class="font-medium"
+            >{{ prediction.home_team }} ({{ home_form.ppg }} PPG)</span
+          >
+          <div class="flex gap-1">
+            {% for r in home_form.results %}
+            <span
+              class="w-6 h-6 rounded flex items-center justify-center text-xs font-bold text-white {% if r == 'W' %}bg-emerald-500{% elif r == 'D' %}bg-amber-400{% else %}bg-red-500{% endif %}"
+            >
+              {{ r }}
+            </span>
+            {% empty %}
+            <span class="text-slate-400">—</span>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="font-medium"
+            >{{ prediction.away_team }} ({{ away_form.ppg }} PPG)</span
+          >
+          <div class="flex gap-1">
+            {% for r in away_form.results %}
+            <span
+              class="w-6 h-6 rounded flex items-center justify-center text-xs font-bold text-white {% if r == 'W' %}bg-emerald-500{% elif r == 'D' %}bg-amber-400{% else %}bg-red-500{% endif %}"
+            >
+              {{ r }}
+            </span>
+            {% empty %}
+            <span class="text-slate-400">—</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+      <h2 class="text-lg font-semibold mb-1">Confrontations directes (H2H)</h2>
+      <p class="text-xs text-slate-500 mb-3">
+        {{ h2h.played }} matchs — {{ prediction.home_team }} : {{
+        h2h.team_a_wins }}V · {{ h2h.draws }}N · {{ prediction.away_team }} : {{
+        h2h.team_b_wins }}V
+      </p>
+      <ul class="divide-y divide-slate-100 text-sm">
+        {% for match in h2h.recent %}
+        <li class="py-2 flex justify-between">
+          <span
+            >{{ match.home }} <strong>{{ match.score }}</strong> {{ match.away
+            }}</span
+          >
+          <span class="text-slate-400 text-xs">{{ match.date }}</span>
+        </li>
+        {% empty %}
+        <li class="text-slate-400">
+          Aucune confrontation récente enregistrée.
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+  const ctx = document.getElementById('resultDonutChart');
+  if (ctx) {
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['{{ prediction.home_team|escapejs }}', 'Nul', '{{ prediction.away_team|escapejs }}'],
+        datasets: [{
+          data: [
+            {{ prediction.p_home|stringformat:"f" }},
+            {{ prediction.p_draw|stringformat:"f" }},
+            {{ prediction.p_away|stringformat:"f" }}
+          ],
+          backgroundColor: ['#10b981', '#f59e0b', '#2563eb'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        cutout: '65%',
+        plugins: { legend: { position: 'bottom' } }
+      }
+    });
+  }
+</script>
+{% endblock %}
