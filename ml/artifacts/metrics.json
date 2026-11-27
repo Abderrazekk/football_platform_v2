@@ -202,9 +202,9 @@
       },
       "profiles": {
         "2": "Attaque dominante",
-        "3": "Équipe équilibrée",
-        "0": "Bloc défensif",
-        "1": "Équipe en difficulté"
+        "3": "\u00c9quipe \u00e9quilibr\u00e9e",
+        "0": "Bloc d\u00e9fensif",
+        "1": "\u00c9quipe en difficult\u00e9"
       }
     },
     "players": {
@@ -215,10 +215,76 @@
       "dbscan_outliers_count": 43,
       "profiles": {
         "1": "Star offensive",
-        "3": "Créateur influent",
-        "2": "Titulaire régulier",
-        "0": "Profil défensif / Soutien"
+        "3": "Cr\u00e9ateur influent",
+        "2": "Titulaire r\u00e9gulier",
+        "0": "Profil d\u00e9fensif / Soutien"
       }
     }
+  },
+  "regression": {
+    "evaluated_at_utc": "2026-11-27T20:49:46.230197+00:00",
+    "best_model": "xgboost",
+    "mae": 0.9714,
+    "rmse": 1.9771,
+    "mse": 3.9088,
+    "r2": 0.294,
+    "top1_star_hit_rate": 0.1213,
+    "top3_star_hit_rate": 0.2787,
+    "model_comparison": [
+      {
+        "model": "xgboost",
+        "mae": 0.9714,
+        "rmse": 1.9771,
+        "mse": 3.9088,
+        "r2": 0.294,
+        "top1_star_hit_rate": 0.1213,
+        "top3_star_hit_rate": 0.2787
+      },
+      {
+        "model": "random_forest",
+        "mae": 0.9647,
+        "rmse": 1.978,
+        "mse": 3.9123,
+        "r2": 0.2934,
+        "top1_star_hit_rate": 0.0987,
+        "top3_star_hit_rate": 0.2933
+      },
+      {
+        "model": "linear_regression",
+        "mae": 0.999,
+        "rmse": 1.9897,
+        "mse": 3.9588,
+        "r2": 0.285,
+        "top1_star_hit_rate": 0.1187,
+        "top3_star_hit_rate": 0.2973
+      },
+      {
+        "model": "ridge",
+        "mae": 0.999,
+        "rmse": 1.9897,
+        "mse": 3.9588,
+        "r2": 0.285,
+        "top1_star_hit_rate": 0.1187,
+        "top3_star_hit_rate": 0.2973
+      },
+      {
+        "model": "lasso",
+        "mae": 0.9987,
+        "rmse": 1.9906,
+        "mse": 3.9626,
+        "r2": 0.2843,
+        "top1_star_hit_rate": 0.1173,
+        "top3_star_hit_rate": 0.3
+      },
+      {
+        "model": "rolling_avg_baseline",
+        "mae": 1.052,
+        "rmse": 2.1071,
+        "mse": 4.44,
+        "r2": 0.1981,
+        "top1_star_hit_rate": 0.096,
+        "top3_star_hit_rate": 0.2733
+      }
+    ]
   }
 }
