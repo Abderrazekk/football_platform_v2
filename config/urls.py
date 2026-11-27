@@ -30,4 +30,6 @@ urlpatterns = [
     path("teams/<int:pk>/", core_views.team_detail_view, name="team_detail"),
     path("model/performance/", core_views.model_performance_view, name="model_performance"),
     path("ml-figures/<str:filename>/", core_views.ml_figure_view, name="ml_figure"),
+    #phase7
+    path("players/", include("apps.players.urls")),
 ]

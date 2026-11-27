@@ -47,13 +47,14 @@
                 >Mes favoris</a
               >
               {% endif %}
-              <!-- Phase 6+ placeholders -->
               <a
                 href="{% url 'teams_list' %}"
                 class="hover:text-emerald-400 transition"
                 >Équipes</a
               >
-              <a href="#" class="text-slate-400 hover:text-white transition"
+              <a
+                href="{% url 'players:list' %}"
+                class="hover:text-emerald-400 transition"
                 >Joueurs</a
               >
               <a href="#" class="text-slate-400 hover:text-white transition"

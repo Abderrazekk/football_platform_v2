@@ -3,6 +3,7 @@ import joblib
 import numpy as np
 from django.conf import settings
 
+from django.db.models import Avg, Sum
 from apps.players.models import Player, PlayerGameweekStats
 
 MODEL_PATH = Path(settings.BASE_DIR) / "ml" / "artifacts" / "models" / "player_model.joblib"
@@ -110,3 +111,137 @@ def get_match_stars_and_risks(home_team, away_team, top_n: int = 3) -> dict:
         "stars": scored[:top_n],
         "at_risk": at_risk[:5],
     }
+    
+def get_player_season_summary(player: Player) -> dict:
+    """Aggregate season-level stats for the player's most recent season."""
+    latest_gw = (
+        PlayerGameweekStats.objects.filter(player=player)
+        .select_related("season")
+        .order_by("-season__name", "-round_num")
+        .first()
+    )
+    if not latest_gw:
+        return {
+            "season": "N/A",
+            "matches": 0,
+            "minutes": 0,
+            "total_points": 0,
+            "goals": 0,
+            "assists": 0,
+            "avg_points": 0.0,
+            "avg_bps": 0.0,
+            "avg_ict": 0.0,
+        }
+
+    qs = PlayerGameweekStats.objects.filter(player=player, season=latest_gw.season)
+    agg = qs.aggregate(
+        sum_minutes=Sum("minutes"),
+        sum_points=Sum("total_points"),
+        sum_goals=Sum("goals_scored"),
+        sum_assists=Sum("assists"),
+        avg_points=Avg("total_points"),
+        avg_bps=Avg("bps"),
+        avg_ict=Avg("ict_index"),
+    )
+    return {
+        "season": latest_gw.season.name,
+        "matches": qs.filter(minutes__gt=0).count(),
+        "minutes": int(agg["sum_minutes"] or 0),
+        "total_points": int(agg["sum_points"] or 0),
+        "goals": int(agg["sum_goals"] or 0),
+        "assists": int(agg["sum_assists"] or 0),
+        "avg_points": round(float(agg["avg_points"] or 0.0), 2),
+        "avg_bps": round(float(agg["avg_bps"] or 0.0), 1),
+        "avg_ict": round(float(agg["avg_ict"] or 0.0), 1),
+    }
+
+
+def get_player_form_series(player: Player, limit: int = 10) -> dict:
+    """Return chronological labels, points, and minutes for Chart.js."""
+    gws = list(
+        PlayerGameweekStats.objects.filter(player=player)
+        .select_related("season")
+        .order_by("-season__name", "-round_num")[:limit]
+    )
+    gws.reverse()
+    return {
+        "labels": [f"GW {g.round_num}" for g in gws],
+        "points": [int(g.total_points or 0) for g in gws],
+        "minutes": [int(g.minutes or 0) for g in gws],
+    }
+
+
+def compare_players(player_a: Player, player_b: Player) -> dict:
+    """Build side-by-side season stats + next-fixture expected points."""
+    return {
+        "player_a": {
+            "player": player_a,
+            "summary": get_player_season_summary(player_a),
+            "expected_points_home": predict_player_points(player_a, was_home=1),
+            "expected_points_away": predict_player_points(player_a, was_home=0),
+        },
+        "player_b": {
+            "player": player_b,
+            "summary": get_player_season_summary(player_b),
+            "expected_points_home": predict_player_points(player_b, was_home=1),
+            "expected_points_away": predict_player_points(player_b, was_home=0),
+        },
+    }
+
+
+def get_match_stars_and_risks(home_team, away_team, top_n: int = 3) -> dict:
+    """
+    Return:
+      - stars: top `top_n` expected performers across both squads.
+      - at_risk: lowest expected points among regular starters (avg_minutes_3 >= 45).
+    """
+    players = Player.objects.filter(team__in=[home_team, away_team]).select_related("team")
+
+    scored = []
+    starters = []
+
+    for p in players:
+        was_home = 1 if p.team_id == home_team.pk else 0
+        feats = build_player_feature_vector(p, was_home=was_home)
+        if not feats:
+            continue
+        exp_pts = predict_player_points(p, was_home=was_home)
+        if exp_pts is None:
+            continue
+
+        entry = {
+            "player": p,
+            "expected_points": exp_pts,
+            "avg_minutes_3": round(feats["minutes_roll3"], 1),
+            "avg_points_3": round(feats["total_points_roll3"], 2),
+        }
+        scored.append(entry)
+        if feats["minutes_roll3"] >= 45.0:
+            starters.append(entry)
+
+    scored.sort(key=lambda x: -x["expected_points"])
+    starters.sort(key=lambda x: x["expected_points"])
+
+    return {
+        "stars": scored[:top_n],
+        "at_risk": starters[:top_n],
+    }    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

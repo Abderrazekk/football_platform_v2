@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}{{ player.name }} — Player Profile{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h2 class="mb-0">{{ player.name }} <span class="badge bg-secondary">{{ player.position }}</span></h2>
+    <p class="text-muted mb-0">{{ player.team.name|default:"Unknown Club" }} · Season {{ summary.season }}</p>
+  </div>
+  <a href="{% url 'players:compare' %}?p1={{ player.pk }}" class="btn btn-outline-primary btn-sm">Compare with another player</a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card text-center p-3">
+      <small class="text-muted">Total Points</small>
+      <h3 class="mb-0">{{ summary.total_points }}</h3>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center p-3">
+      <small class="text-muted">Goals / Assists</small>
+      <h3 class="mb-0">{{ summary.goals }} / {{ summary.assists }}</h3>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center p-3">
+      <small class="text-muted">Expected Pts (Home / Away)</small>
+      <h4 class="mb-0">{{ expected_home|default:"—" }} / {{ expected_away|default:"—" }}</h4>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center p-3">
+      <small class="text-muted">Cluster Profile</small>
+      <h5 class="mb-0">{{ cluster_profile|default:"Pending Clustering" }}</h5>
+    </div>
+  </div>
+</div>
+
+<div class="card p-3 shadow-sm">
+  <h5 class="mb-3">Recent Form (Last 10 Gameweeks)</h5>
+  <canvas id="formChart" height="90"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const formData = {{ form_json|safe }};
+  new Chart(document.getElementById("formChart"), {
+    type: "line",
+    data: {
+      labels: formData.labels,
+      datasets: [{
+        label: "Gameweek Points",
+        data: formData.points,
+        borderColor: "#0d6efd",
+        backgroundColor: "rgba(13,110,253,0.12)",
+        fill: true,
+        tension: 0.3
+      }]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+  });
+</script>
+{% endblock %}

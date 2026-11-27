@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Compare Players{% endblock %}
+
+{% block content %}
+<h2 class="mb-3">Compare Two Players</h2>
+
+<form method="get" class="row g-2 mb-4">
+  <div class="col-md-5">
+    <select name="p1" class="form-select" required>
+      <option value="">Select Player A...</option>
+      {% for p in players %}
+        <option value="{{ p.pk }}" {% if p1_id == p.pk|stringformat:"s" %}selected{% endif %}>{{ p.name }} ({{ p.team.name|default:"—" }} - {{ p.position }})</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-5">
+    <select name="p2" class="form-select" required>
+      <option value="">Select Player B...</option>
+      {% for p in players %}
+        <option value="{{ p.pk }}" {% if p2_id == p.pk|stringformat:"s" %}selected{% endif %}>{{ p.name }} ({{ p.team.name|default:"—" }} - {{ p.position }})</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2">
+    <button class="btn btn-primary w-100" type="submit">Compare</button>
+  </div>
+</form>
+
+{% if comparison %}
+<div class="table-responsive">
+  <table class="table table-bordered align-middle text-center">
+    <thead class="table-dark">
+      <tr>
+        <th>Metric</th>
+        <th>{{ comparison.player_a.player.name }} ({{ comparison.player_a.player.position }})</th>
+        <th>{{ comparison.player_b.player.name }} ({{ comparison.player_b.player.position }})</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Club</td><td>{{ comparison.player_a.player.team.name|default:"—" }}</td><td>{{ comparison.player_b.player.team.name|default:"—" }}</td></tr>
+      <tr><td>Matches Played</td><td>{{ comparison.player_a.summary.matches }}</td><td>{{ comparison.player_b.summary.matches }}</td></tr>
+      <tr><td>Minutes</td><td>{{ comparison.player_a.summary.minutes }}</td><td>{{ comparison.player_b.summary.minutes }}</td></tr>
+      <tr><td>Total Points</td><td><strong>{{ comparison.player_a.summary.total_points }}</strong></td><td><strong>{{ comparison.player_b.summary.total_points }}</strong></td></tr>
+      <tr><td>Goals / Assists</td><td>{{ comparison.player_a.summary.goals }} / {{ comparison.player_a.summary.assists }}</td><td>{{ comparison.player_b.summary.goals }} / {{ comparison.player_b.summary.assists }}</td></tr>
+      <tr><td>Avg Points / GW</td><td>{{ comparison.player_a.summary.avg_points }}</td><td>{{ comparison.player_b.summary.avg_points }}</td></tr>
+      <tr class="table-info">
+        <td><strong>Expected Pts (Next Home)</strong></td>
+        <td><strong>{{ comparison.player_a.expected_points_home|default:"—" }}</strong></td>
+        <td><strong>{{ comparison.player_b.expected_points_home|default:"—" }}</strong></td>
+      </tr>
+      <tr class="table-info">
+        <td><strong>Expected Pts (Next Away)</strong></td>
+        <td><strong>{{ comparison.player_a.expected_points_away|default:"—" }}</strong></td>
+        <td><strong>{{ comparison.player_b.expected_points_away|default:"—" }}</strong></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

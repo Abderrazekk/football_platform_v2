@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Match Stars & Joueurs à Risque{% endblock %}
+
+{% block content %}
+<h2 class="mb-3">Match Stars &amp; Joueurs à Risque</h2>
+
+<form method="get" class="row g-2 mb-4">
+  <div class="col-md-9">
+    <select name="match" class="form-select">
+      {% for m in matches %}
+        <option value="{{ m.pk }}" {% if selected_match and selected_match.pk == m.pk %}selected{% endif %}>
+          {{ m.match_date|date:"Y-m-d" }} — {{ m.home_team.name }} vs {{ m.away_team.name }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-3">
+    <button class="btn btn-primary w-100" type="submit">Analyze Match</button>
+  </div>
+</form>
+
+{% if selected_match and result %}
+<div class="row g-4">
+  <div class="col-md-6">
+    <div class="card border-success shadow-sm h-100">
+      <div class="card-header bg-success text-white fw-bold">Top 3 Expected Performers (Match Stars)</div>
+      <ul class="list-group list-group-flush">
+        {% for item in result.stars %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <a href="{% url 'players:detail' item.player.pk %}" class="fw-semibold text-decoration-none">{{ item.player.name }}</a>
+              <small class="text-muted d-block">{{ item.player.team.name }} · {{ item.player.position }} · {{ item.avg_minutes_3 }} min/GW</small>
+            </div>
+            <span class="badge bg-success fs-6">{{ item.expected_points }} xPts</span>
+          </li>
+        {% empty %}
+          <li class="list-group-item text-muted">No player predictions available.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card border-warning shadow-sm h-100">
+      <div class="card-header bg-warning text-dark fw-bold">Joueurs à Risque (Lowest xPts Among Starters)</div>
+      <ul class="list-group list-group-flush">
+        {% for item in result.at_risk %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <a href="{% url 'players:detail' item.player.pk %}" class="fw-semibold text-decoration-none">{{ item.player.name }}</a>
+              <small class="text-muted d-block">{{ item.player.team.name }} · {{ item.player.position }} · {{ item.avg_minutes_3 }} min/GW</small>
+            </div>
+            <span class="badge bg-warning text-dark fs-6">{{ item.expected_points }} xPts</span>
+          </li>
+        {% empty %}
+          <li class="list-group-item text-muted">No starters flagged at risk.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="alert alert-secondary mt-4" role="alert">
+  <strong>Note on Individual Match Variance:</strong> Single-gameweek player points carry high natural variance—goals, penalties, red cards, and late benchings cannot be predicted with certainty. Treat expected points (xPts) as a probabilistic baseline over multiple fixtures rather than a guaranteed single-match outcome.
+</div>
+{% endif %}
+{% endblock %}
