@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Classement Final Projeté {{ season.name }}{% endblock %}
+
+{% block content %}
+{% include "season/_nav.html" with active_tab="table" %}
+
+<div class="mb-6">
+  <h1 class="text-2xl font-bold text-slate-900">Classement Final Projeté ({{ season.name }})</h1>
+  <p class="text-sm text-slate-500">Points réels acquis + espérance de points (3×P(V) + 1×P(N)) sur les matchs restants.</p>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+      <thead class="bg-slate-50 text-left text-xs uppercase text-slate-500">
+        <tr>
+          <th class="px-4 py-3">#</th>
+          <th class="px-4 py-3">Équipe</th>
+          <th class="px-4 py-3 text-center">MJ</th>
+          <th class="px-4 py-3 text-center">Restants</th>
+          <th class="px-4 py-3 text-center">Diff</th>
+          <th class="px-4 py-3 text-center">Pts Actuels</th>
+          <th class="px-4 py-3 text-center">Pts Projetés (Rest.)</th>
+          <th class="px-4 py-3 text-right font-bold">Total Final Projeté</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for row in standings %}
+          <tr class="hover:bg-slate-50 {% if row.rank <= 4 %}bg-emerald-50/40{% elif row.rank >= 18 %}bg-red-50/40{% endif %}">
+            <td class="px-4 py-3 font-bold text-slate-600">{{ row.rank }}</td>
+            <td class="px-4 py-3">
+              <a href="{% url 'team_detail' row.team.pk %}" class="font-semibold text-slate-900 hover:text-emerald-600">
+                {{ row.team.name }}
+              </a>
+            </td>
+            <td class="px-4 py-3 text-center">{{ row.played }}</td>
+            <td class="px-4 py-3 text-center text-slate-500">{{ row.remaining }}</td>
+            <td class="px-4 py-3 text-center">{{ row.gd|stringformat:"+d" }}</td>
+            <td class="px-4 py-3 text-center font-semibold">{{ row.current_points }}</td>
+            <td class="px-4 py-3 text-center text-slate-600">+{{ row.projected_remaining_points }}</td>
+            <td class="px-4 py-3 text-right font-extrabold text-slate-900">{{ row.projected_total_points }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="8" class="px-6 py-8 text-center text-slate-400">Aucune donnée de saison disponible.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

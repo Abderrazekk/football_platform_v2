@@ -1,0 +1,18 @@
+<div class="flex flex-wrap gap-2 mb-6 border-b border-slate-200 pb-4">
+  <a href="{% url 'season:best_xi' %}"
+     class="px-4 py-2 rounded-lg text-sm font-semibold {% if active_tab == 'best_xi' %}bg-emerald-600 text-white{% else %}bg-white border border-slate-300 text-slate-700 hover:bg-slate-50{% endif %}">
+    Best XI (100M£)
+  </a>
+  <a href="{% url 'season:best_player' %}"
+     class="px-4 py-2 rounded-lg text-sm font-semibold {% if active_tab == 'best_player' %}bg-emerald-600 text-white{% else %}bg-white border border-slate-300 text-slate-700 hover:bg-slate-50{% endif %}">
+    Top 10 Joueurs
+  </a>
+  <a href="{% url 'season:best_young' %}"
+     class="px-4 py-2 rounded-lg text-sm font-semibold {% if active_tab == 'best_young' %}bg-emerald-600 text-white{% else %}bg-white border border-slate-300 text-slate-700 hover:bg-slate-50{% endif %}">
+    Meilleurs Jeunes (&lt;22 ans)
+  </a>
+  <a href="{% url 'season:table' %}"
+     class="px-4 py-2 rounded-lg text-sm font-semibold {% if active_tab == 'table' %}bg-emerald-600 text-white{% else %}bg-white border border-slate-300 text-slate-700 hover:bg-slate-50{% endif %}">
+    Classement Final Projeté
+  </a>
+</div>

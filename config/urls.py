@@ -32,4 +32,6 @@ urlpatterns = [
     path("ml-figures/<str:filename>/", core_views.ml_figure_view, name="ml_figure"),
     #phase7
     path("players/", include("apps.players.urls")),
+    #phase8
+    path("season/", include("apps.season.urls")),
 ]

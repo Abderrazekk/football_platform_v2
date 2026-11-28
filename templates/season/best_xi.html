@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Best XI {{ season_name }} — Football AI{% endblock %}
+
+{% block content %}
+{% include "season/_nav.html" with active_tab="best_xi" %}
+
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+  <div>
+    <h1 class="text-2xl font-bold text-slate-900">Best XI Glouton ({{ season_name }})</h1>
+    <p class="text-sm text-slate-500">Effectif de 15 joueurs (2 GK, 5 DEF, 5 MID, 3 FWD) · Max 3 par club · Budget ≤ £100.0M.</p>
+  </div>
+  <div class="flex gap-3 text-sm">
+    <div class="bg-white border border-slate-200 rounded-lg px-4 py-2">
+      <span class="text-slate-500">Formation :</span> <strong>{{ best_xi.formation }}</strong>
+    </div>
+    <div class="bg-white border border-slate-200 rounded-lg px-4 py-2">
+      <span class="text-slate-500">Budget :</span> <strong>£{{ best_xi.total_cost }}M</strong> / £100.0M
+    </div>
+    <div class="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-2 text-emerald-800">
+      <span>Score XI (avec Cap.) :</span> <strong>{{ best_xi.total_projected_points }} pts</strong>
+    </div>
+  </div>
+</div>
+
+<!-- Pitch View (Starting XI) -->
+<div class="bg-emerald-800 rounded-2xl p-6 text-white shadow-md space-y-6 mb-8">
+  <div class="text-center text-xs uppercase tracking-wider text-emerald-200 font-semibold">
+    XI Titulaire ({{ best_xi.formation }})
+  </div>
+
+  {% for pos_code, players in best_xi.xi_by_pos.items %}
+    <div class="flex flex-wrap justify-center gap-4">
+      {% for fc in players %}
+        <div class="bg-white/95 text-slate-900 rounded-xl px-4 py-3 w-44 text-center shadow">
+          <div class="flex justify-between items-center text-[11px] font-bold mb-1">
+            <span class="text-slate-500">{{ pos_code }}</span>
+            {% if best_xi.captain and fc.player_id == best_xi.captain.player_id %}
+              <span class="px-1.5 py-0.5 rounded bg-amber-400 text-slate-950">C (2x)</span>
+            {% elif best_xi.vice_captain and fc.player_id == best_xi.vice_captain.player_id %}
+              <span class="px-1.5 py-0.5 rounded bg-slate-200 text-slate-700">VC</span>
+            {% endif %}
+          </div>
+          <a href="{% url 'players:detail' fc.player.pk %}" class="font-bold text-sm block truncate hover:text-emerald-600">
+            {{ fc.player.name }}
+          </a>
+          <p class="text-xs text-slate-500 truncate">{{ fc.player.team.name }}</p>
+          <p class="text-xs font-extrabold text-emerald-700 mt-1">{{ fc.projected_points }} pts · £{{ fc.price_millions }}M</p>
+        </div>
+      {% endfor %}
+    </div>
+  {% endfor %}
+</div>
+
+<!-- Bench (4 Substitutes) -->
+<div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+  <h2 class="text-base font-bold text-slate-900 mb-4">Banc des remplaçants (4 joueurs)</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+    {% for fc in best_xi.bench %}
+      <div class="border border-slate-200 rounded-lg p-3 bg-slate-50">
+        <span class="text-xs font-bold text-slate-500">{{ fc.player.position }}</span>
+        <p class="font-semibold text-sm text-slate-900 truncate">{{ fc.player.name }}</p>
+        <p class="text-xs text-slate-500">{{ fc.player.team.name }} · £{{ fc.price_millions }}M</p>
+        <p class="text-xs font-bold text-emerald-600 mt-1">{{ fc.projected_points }} pts</p>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
