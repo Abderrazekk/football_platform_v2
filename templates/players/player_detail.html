@@ -1,11 +1,12 @@
 {% extends "base.html" %}
+{% load team_tags %}
 {% block title %}{{ player.name }} — Player Profile{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div>
     <h2 class="mb-0">{{ player.name }} <span class="badge bg-secondary">{{ player.position }}</span></h2>
-    <p class="text-muted mb-0">{{ player.team.name|default:"Unknown Club" }} · Season {{ summary.season }}</p>
+    <p class="text-muted mb-0 inline-flex items-center gap-2">{% team_logo player.team 22 %}{{ player.team.name|default:"Unknown Club" }} · Season {{ summary.season }}</p>
   </div>
   <a href="{% url 'players:compare' %}?p1={{ player.pk }}" class="btn btn-outline-primary btn-sm">Compare with another player</a>
 </div>

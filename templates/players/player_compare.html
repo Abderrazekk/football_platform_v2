@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load team_tags %}
 {% block title %}Compare Players{% endblock %}
 
 {% block content %}
@@ -37,7 +38,10 @@
       </tr>
     </thead>
     <tbody>
-      <tr><td>Club</td><td>{{ comparison.player_a.player.team.name|default:"—" }}</td><td>{{ comparison.player_b.player.team.name|default:"—" }}</td></tr>
+      <tr><td>Club</td>
+        <td><span class="inline-flex items-center gap-2">{% team_logo comparison.player_a.player.team 22 %}{{ comparison.player_a.player.team.name|default:"—" }}</span></td>
+        <td><span class="inline-flex items-center gap-2">{% team_logo comparison.player_b.player.team 22 %}{{ comparison.player_b.player.team.name|default:"—" }}</span></td>
+      </tr>
       <tr><td>Matches Played</td><td>{{ comparison.player_a.summary.matches }}</td><td>{{ comparison.player_b.summary.matches }}</td></tr>
       <tr><td>Minutes</td><td>{{ comparison.player_a.summary.minutes }}</td><td>{{ comparison.player_b.summary.minutes }}</td></tr>
       <tr><td>Total Points</td><td><strong>{{ comparison.player_a.summary.total_points }}</strong></td><td><strong>{{ comparison.player_b.summary.total_points }}</strong></td></tr>

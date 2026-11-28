@@ -1,10 +1,11 @@
 {% extends "base.html" %}
+{% load team_tags %}
 {% block title %}{% if is_edit %}Modifier un favori{% else %}Ajouter un favori{% endif %}{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-md-6">
-    <h2 class="mb-4">{% if is_edit %}Modifier {{ favorite.team.name }}{% else %}Ajouter une équipe favorite{% endif %}</h2>
+    <h2 class="mb-4 inline-flex items-center gap-3">{% if is_edit %}{% team_logo favorite.team 36 %}Modifier {{ favorite.team.name }}{% else %}Ajouter une équipe favorite{% endif %}</h2>
     <form method="post" novalidate>
       {% csrf_token %}
       {% for field in form %}

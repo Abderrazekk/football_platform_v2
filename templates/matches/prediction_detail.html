@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load team_tags %}
 {% block title %}{{ prediction.home_team.name }} vs {{ prediction.away_team.name }} — Prédiction & XI Optimal{% endblock %}
 
 {% block content %}
@@ -9,8 +10,10 @@
       <span class="text-xs font-bold uppercase tracking-wider text-emerald-600">
         Prédiction IA ({{ prediction.model_version }})
       </span>
-      <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 mt-1">
-        {{ prediction.home_team.name }} <span class="text-slate-400 font-normal">vs</span> {{ prediction.away_team.name }}
+      <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 mt-1 flex items-center gap-3 flex-wrap">
+        {% team_logo prediction.home_team 40 %} {{ prediction.home_team.name }}
+        <span class="text-slate-400 font-normal">vs</span>
+        {{ prediction.away_team.name }} {% team_logo prediction.away_team 40 %}
       </h1>
       <p class="text-xs text-slate-400 mt-1">Générée le {{ prediction.created_at|date:"d/m/Y H:i" }}</p>
     </div>
@@ -29,7 +32,9 @@
   <!-- 3 Probability Cards -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
     <div class="bg-white rounded-xl border border-slate-200 p-5 text-center shadow-sm">
-      <p class="text-xs uppercase tracking-wider text-slate-500">Victoire {{ prediction.home_team.name }}</p>
+      <p class="text-xs uppercase tracking-wider text-slate-500">
+        <span class="inline-flex items-center gap-2">Victoire {{ prediction.home_team.name }} {% team_logo prediction.home_team 22 %}</span>
+      </p>
       <p class="text-3xl font-extrabold text-emerald-600 mt-1">{{ prediction.p_home|floatformat:1 }}%</p>
     </div>
     <div class="bg-white rounded-xl border border-slate-200 p-5 text-center shadow-sm">
@@ -37,7 +42,9 @@
       <p class="text-3xl font-extrabold text-amber-500 mt-1">{{ prediction.p_draw|floatformat:1 }}%</p>
     </div>
     <div class="bg-white rounded-xl border border-slate-200 p-5 text-center shadow-sm">
-      <p class="text-xs uppercase tracking-wider text-slate-500">Victoire {{ prediction.away_team.name }}</p>
+      <p class="text-xs uppercase tracking-wider text-slate-500">
+        <span class="inline-flex items-center gap-2">Victoire {{ prediction.away_team.name }} {% team_logo prediction.away_team 22 %}</span>
+      </p>
       <p class="text-3xl font-extrabold text-blue-600 mt-1">{{ prediction.p_away|floatformat:1 }}%</p>
     </div>
   </div>
@@ -83,7 +90,7 @@
               <div class="bg-white/95 text-slate-900 rounded-xl px-3.5 py-2.5 w-48 text-center shadow">
                 <div class="flex justify-between items-center text-[11px] font-bold mb-1">
                   <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">{{ pos_code }}</span>
-                  <span class="text-[10px] font-semibold text-slate-500 truncate max-w-[90px]">{{ item.team_name }}</span>
+                  <span class="text-[10px] font-semibold text-slate-500 truncate max-w-[90px] inline-flex items-center gap-1">{% team_logo item.team_name 14 %}{{ item.team_name }}</span>
                   {% if lineups.combined_xi.captain and item.player.pk == lineups.combined_xi.captain.player.pk %}
                     <span class="px-1.5 py-0.5 rounded bg-amber-400 text-slate-950">★ Star</span>
                   {% endif %}
@@ -103,7 +110,7 @@
     <!-- Panel 2: Home Team Best XI -->
     <div id="panel-home" class="lineup-panel hidden">
       <div class="flex items-center justify-between text-xs text-slate-600 mb-3 px-1">
-        <span>{{ prediction.home_team.name }} (Domicile) — Formation : <strong>{{ lineups.home_xi.formation }}</strong></span>
+        <span class="inline-flex items-center gap-2">{% team_logo prediction.home_team 20 %}{{ prediction.home_team.name }} (Domicile) — Formation : <strong>{{ lineups.home_xi.formation }}</strong></span>
         <span>Score d'impact prédit : <strong class="text-emerald-700">{{ lineups.home_xi.total_score }} pts</strong></span>
       </div>
       <div class="bg-emerald-800 rounded-2xl p-6 text-white shadow-inner space-y-5">
@@ -132,7 +139,7 @@
     <!-- Panel 3: Away Team Best XI -->
     <div id="panel-away" class="lineup-panel hidden">
       <div class="flex items-center justify-between text-xs text-slate-600 mb-3 px-1">
-        <span>{{ prediction.away_team.name }} (Extérieur) — Formation : <strong>{{ lineups.away_xi.formation }}</strong></span>
+        <span class="inline-flex items-center gap-2">{% team_logo prediction.away_team 20 %}{{ prediction.away_team.name }} (Extérieur) — Formation : <strong>{{ lineups.away_xi.formation }}</strong></span>
         <span>Score d'impact prédit : <strong class="text-blue-700">{{ lineups.away_xi.total_score }} pts</strong></span>
       </div>
       <div class="bg-slate-800 rounded-2xl p-6 text-white shadow-inner space-y-5">
@@ -190,7 +197,7 @@
       <h2 class="text-lg font-semibold mb-3">Forme récente (5 derniers matchs)</h2>
       <div class="space-y-3 text-sm">
         <div class="flex items-center justify-between">
-          <span class="font-medium">{{ prediction.home_team.name }} ({{ home_form.ppg }} PPG)</span>
+          <span class="font-medium inline-flex items-center gap-2">{% team_logo prediction.home_team 22 %}{{ prediction.home_team.name }} ({{ home_form.ppg }} PPG)</span>
           <div class="flex gap-1">
             {% for r in home_form.results %}
               <span class="w-6 h-6 rounded flex items-center justify-center text-xs font-bold text-white
@@ -203,7 +210,7 @@
           </div>
         </div>
         <div class="flex items-center justify-between">
-          <span class="font-medium">{{ prediction.away_team.name }} ({{ away_form.ppg }} PPG)</span>
+          <span class="font-medium inline-flex items-center gap-2">{% team_logo prediction.away_team 22 %}{{ prediction.away_team.name }} ({{ away_form.ppg }} PPG)</span>
           <div class="flex gap-1">
             {% for r in away_form.results %}
               <span class="w-6 h-6 rounded flex items-center justify-center text-xs font-bold text-white
@@ -225,7 +232,7 @@
       <ul class="divide-y divide-slate-100 text-sm">
         {% for m in h2h.recent %}
           <li class="py-2 flex justify-between">
-            <span>{{ m.home }} <strong>{{ m.score }}</strong> {{ m.away }}</span>
+            <span class="inline-flex items-center gap-1.5">{{ m.home }} {% team_logo m.home 18 %}<strong>{{ m.score }}</strong>{% team_logo m.away 18 %} {{ m.away }}</span>
             <span class="text-slate-400 text-xs">{{ m.date }}</span>
           </li>
         {% empty %}

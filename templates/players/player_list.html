@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load team_tags %}
 {% block title %}Players — Premier League Hub{% endblock %}
 
 {% block content %}
@@ -44,7 +45,7 @@
             <h5 class="card-title mb-1">
               <a href="{% url 'players:detail' p.pk %}" class="text-decoration-none">{{ p.name }}</a>
             </h5>
-            <small class="text-muted">{{ p.team.name|default:"Free Agent" }}</small>
+            <small class="text-muted inline-flex items-center gap-1.5">{% team_logo p.team 18 %}{{ p.team.name|default:"Free Agent" }}</small>
           </div>
           <span class="badge bg-secondary">{{ p.position }}</span>
         </div>

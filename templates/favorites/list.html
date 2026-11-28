@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load team_tags %}
 {% block title %}Mes Équipes Favorites{% endblock %}
 
 {% block content %}
@@ -23,9 +24,12 @@
         {% for item in items %}
         <tr>
           <td>
-            <a href="{% url 'favorites:detail' item.favorite.pk %}" class="fw-semibold text-decoration-none">
-              {{ item.favorite.team.name }}
-            </a>
+            <div class="flex items-center gap-2">
+              {% team_logo item.favorite.team 26 %}
+              <a href="{% url 'favorites:detail' item.favorite.pk %}" class="fw-semibold text-decoration-none">
+                {{ item.favorite.team.name }}
+              </a>
+            </div>
           </td>
           <td>
             <span class="badge {% if item.favorite.priority == 1 %}bg-danger{% elif item.favorite.priority == 2 %}bg-warning text-dark{% else %}bg-secondary{% endif %}">

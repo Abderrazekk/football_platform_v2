@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load team_tags %}
 {% block title %}Historique — Football AI{% endblock %}
 {% block content %}
 <div class="max-w-5xl mx-auto space-y-6">
@@ -33,7 +34,11 @@
         {% for item in predictions %}
         <tr class="hover:bg-slate-50">
           <td class="px-4 py-3 font-medium text-slate-900">
-            {{ item.home_team }} vs {{ item.away_team }}
+            <div class="flex items-center gap-2">
+              {% team_logo item.home_team 22 %}{{ item.home_team }}
+              <span class="text-slate-400 font-normal">vs</span>
+              {{ item.away_team }}{% team_logo item.away_team 22 %}
+            </div>
           </td>
           <td class="px-4 py-3 text-emerald-600 font-semibold">
             {{ item.p_home|floatformat:1 }}%

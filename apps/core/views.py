@@ -17,7 +17,8 @@ FIGURES_DIR = Path(settings.BASE_DIR) / "ml" / "reports" / "figures"
 
 def home_view(request):
     kpis = get_home_kpis(request.user)
-    return render(request, "home.html", {"kpis": kpis})
+    teams = Team.objects.all().order_by("name")
+    return render(request, "home.html", {"kpis": kpis, "teams": teams})
 
 
 def teams_list_view(request):

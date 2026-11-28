@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load team_tags %}
 {% block title %}Accueil — Football AI{% endblock %}
 
 {% block content %}
@@ -60,6 +61,24 @@
         Connectez-vous pour suivre vos stats
       {% endif %}
     </p>
+  </div>
+</section>
+
+<!-- Club crest wall -->
+<section class="mt-8 bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-lg font-semibold text-slate-900">Les clubs de Premier League</h2>
+    <a href="{% url 'teams_list' %}" class="text-sm font-semibold text-emerald-600 hover:text-emerald-700">Voir le classement →</a>
+  </div>
+  <div class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-10 gap-3">
+    {% for t in teams %}
+      <a href="{% url 'team_detail' t.pk %}"
+         class="flex flex-col items-center gap-2 p-2 rounded-lg hover:bg-slate-50 transition"
+         title="{{ t.name }}">
+        {% team_logo t 44 %}
+        <span class="text-[11px] font-medium text-slate-600 text-center leading-tight">{{ t.name }}</span>
+      </a>
+    {% endfor %}
   </div>
 </section>
 {% endblock %}

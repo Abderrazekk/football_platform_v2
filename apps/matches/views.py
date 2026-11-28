@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from apps.players.services import predict_match_best_lineups
+from apps.core.templatetags.team_tags import team_logo_url
 from .forms import PredictionForm
 from .models import Prediction, Team
 from .services import (
@@ -42,7 +43,10 @@ def predict_view(request):
         except PredictionServiceError as exc:
             messages.error(request, str(exc))
 
-    return render(request, "matches/predict.html", {"form": form})
+    return render(request, "matches/predict.html", {
+        "form": form,
+        "team_logos": {str(team.pk): team_logo_url(team) for team in Team.objects.all()},
+    })
 
 
 @login_required

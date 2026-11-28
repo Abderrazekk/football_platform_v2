@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load team_tags %}
 {% block title %}Prédire un match — Football AI{% endblock %}
 
 {% block content %}
@@ -26,13 +27,31 @@
     {% if form.errors %}
       <div class="mt-3 text-sm text-red-600">{{ form.errors }}</div>
     {% endif %}
+
+    <!-- Live crest preview for the selected teams -->
+    <div class="mt-6 border-t border-slate-200 pt-5">
+      <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 text-center mb-3">Aperçu de l'affiche</p>
+      <div class="flex items-center justify-center gap-4">
+        <div class="flex-1 flex items-center justify-end gap-2 min-w-0">
+          <span id="homeCrestName" class="font-bold text-slate-900 truncate text-right"></span>
+          <img id="homeCrestImg" alt="" class="w-12 h-12 object-contain hidden drop-shadow-sm">
+        </div>
+        <span class="text-slate-400 font-semibold text-sm">vs</span>
+        <div class="flex-1 flex items-center gap-2 min-w-0">
+          <img id="awayCrestImg" alt="" class="w-12 h-12 object-contain hidden drop-shadow-sm">
+          <span id="awayCrestName" class="font-bold text-slate-900 truncate"></span>
+        </div>
+      </div>
+    </div>
   </div>
 
   {% if result %}
   <!-- 3 Probability Cards -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
     <div class="bg-white rounded-xl border border-slate-200 p-5 text-center shadow-sm">
-      <p class="text-xs uppercase tracking-wider text-slate-500">Victoire {{ result.home_team }}</p>
+      <p class="text-xs uppercase tracking-wider text-slate-500">
+        <span class="inline-flex items-center gap-2">Victoire {{ result.home_team }} {% team_logo result.home_team 22 %}</span>
+      </p>
       <p class="text-3xl font-extrabold text-emerald-600 mt-1">{{ result.prob_home|floatformat:1 }}%</p>
     </div>
     <div class="bg-white rounded-xl border border-slate-200 p-5 text-center shadow-sm">
@@ -40,7 +59,9 @@
       <p class="text-3xl font-extrabold text-amber-500 mt-1">{{ result.prob_draw|floatformat:1 }}%</p>
     </div>
     <div class="bg-white rounded-xl border border-slate-200 p-5 text-center shadow-sm">
-      <p class="text-xs uppercase tracking-wider text-slate-500">Victoire {{ result.away_team }}</p>
+      <p class="text-xs uppercase tracking-wider text-slate-500">
+        <span class="inline-flex items-center gap-2">Victoire {{ result.away_team }} {% team_logo result.away_team 22 %}</span>
+      </p>
       <p class="text-3xl font-extrabold text-blue-600 mt-1">{{ result.prob_away|floatformat:1 }}%</p>
     </div>
   </div>
@@ -75,7 +96,7 @@
       <h2 class="text-lg font-semibold mb-3">Forme récente (5 derniers matchs)</h2>
       <div class="space-y-3 text-sm">
         <div class="flex items-center justify-between">
-          <span class="font-medium">{{ result.home_team }}</span>
+          <span class="font-medium inline-flex items-center gap-2">{% team_logo result.home_team 22 %}{{ result.home_team }}</span>
           <div class="flex gap-1">
             {% for r in result.home_form %}
               <span class="w-6 h-6 rounded flex items-center justify-center text-xs font-bold text-white
@@ -88,7 +109,7 @@
           </div>
         </div>
         <div class="flex items-center justify-between">
-          <span class="font-medium">{{ result.away_team }}</span>
+          <span class="font-medium inline-flex items-center gap-2">{% team_logo result.away_team 22 %}{{ result.away_team }}</span>
           <div class="flex gap-1">
             {% for r in result.away_form %}
               <span class="w-6 h-6 rounded flex items-center justify-center text-xs font-bold text-white
@@ -108,7 +129,7 @@
       <ul class="divide-y divide-slate-100 text-sm">
         {% for match in result.h2h %}
           <li class="py-2 flex justify-between">
-            <span>{{ match.home }} <strong>{{ match.score }}</strong> {{ match.away }}</span>
+            <span class="inline-flex items-center gap-1.5">{{ match.home }} {% team_logo match.home 18 %}<strong>{{ match.score }}</strong>{% team_logo match.away 18 %} {{ match.away }}</span>
             <span class="text-slate-400 text-xs">{{ match.date }}</span>
           </li>
         {% empty %}
@@ -122,6 +143,41 @@
 {% endblock %}
 
 {% block extra_js %}
+{{ team_logos|json_script:"team-logos-data" }}
+<script>
+  (function () {
+    const logos = JSON.parse(document.getElementById('team-logos-data').textContent);
+    const fields = [
+      { select: document.getElementById('id_home_team'),
+        img: document.getElementById('homeCrestImg'),
+        name: document.getElementById('homeCrestName') },
+      { select: document.getElementById('id_away_team'),
+        img: document.getElementById('awayCrestImg'),
+        name: document.getElementById('awayCrestName') },
+    ];
+
+    function updateField(field) {
+      if (!field.select || !field.img || !field.name) return;
+      const option = field.select.options[field.select.selectedIndex];
+      const logo = logos[field.select.value];
+      field.name.textContent = field.select.value && option ? option.text : '';
+      if (logo) {
+        field.img.src = logo;
+        field.img.alt = option ? option.text : '';
+        field.img.classList.remove('hidden');
+      } else {
+        field.img.removeAttribute('src');
+        field.img.classList.add('hidden');
+      }
+    }
+
+    fields.forEach(function (field) {
+      if (!field.select) return;
+      field.select.addEventListener('change', function () { updateField(field); });
+      updateField(field);
+    });
+  })();
+</script>
 {% if result %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script>

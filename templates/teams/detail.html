@@ -1,15 +1,19 @@
 {% extends "base.html" %}
+{% load team_tags %}
 {% block title %}{{ team.name }} — Analyse Équipe{% endblock %}
 
 {% block content %}
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-  <div>
+  <div class="flex items-center gap-4">
+    {% team_logo team 64 "drop-shadow-sm" %}
+    <div>
     <h1 class="text-3xl font-extrabold text-slate-900">{{ team.name }}</h1>
     {% if team.cluster_label %}
       <span class="inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
         Profil K-Means : {{ team.cluster_label }}
       </span>
     {% endif %}
+    </div>
   </div>
   <div class="flex gap-2">
     <a href="{% url 'team_compare' %}?team_a={{ team.pk }}"
@@ -72,7 +76,9 @@
       {% for m in trend.recent_matches %}
         <tr>
           <td class="px-4 py-2 text-slate-500">{{ m.date|date:"d/m/Y" }}</td>
-          <td class="px-4 py-2 font-medium">{{ m.opponent }}</td>
+          <td class="px-4 py-2 font-medium">
+            <div class="flex items-center gap-2">{% team_logo m.opponent 20 %}{{ m.opponent }}</div>
+          </td>
           <td class="px-4 py-2 text-center text-xs text-slate-500">{{ m.venue }}</td>
           <td class="px-4 py-2 text-center font-semibold">{{ m.score }}</td>
           <td class="px-4 py-2 text-center">

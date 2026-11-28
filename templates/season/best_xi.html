@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load team_tags %}
 {% block title %}Best XI {{ season_name }} — Football AI{% endblock %}
 
 {% block content %}
@@ -43,7 +44,7 @@
           <a href="{% url 'players:detail' fc.player.pk %}" class="font-bold text-sm block truncate hover:text-emerald-600">
             {{ fc.player.name }}
           </a>
-          <p class="text-xs text-slate-500 truncate">{{ fc.player.team.name }}</p>
+          <p class="text-xs text-slate-500 truncate inline-flex items-center gap-1">{% team_logo fc.player.team 14 %}{{ fc.player.team.name }}</p>
           <p class="text-xs font-extrabold text-emerald-700 mt-1">{{ fc.projected_points }} pts · £{{ fc.price_millions }}M</p>
         </div>
       {% endfor %}
@@ -59,7 +60,7 @@
       <div class="border border-slate-200 rounded-lg p-3 bg-slate-50">
         <span class="text-xs font-bold text-slate-500">{{ fc.player.position }}</span>
         <p class="font-semibold text-sm text-slate-900 truncate">{{ fc.player.name }}</p>
-        <p class="text-xs text-slate-500">{{ fc.player.team.name }} · £{{ fc.price_millions }}M</p>
+        <p class="text-xs text-slate-500 inline-flex items-center gap-1">{% team_logo fc.player.team 16 %}{{ fc.player.team.name }} · £{{ fc.price_millions }}M</p>
         <p class="text-xs font-bold text-emerald-600 mt-1">{{ fc.projected_points }} pts</p>
       </div>
     {% endfor %}

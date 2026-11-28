@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load team_tags %}
 {% block title %}Classement Final Projeté {{ season.name }}{% endblock %}
 
 {% block content %}
@@ -29,9 +30,12 @@
           <tr class="hover:bg-slate-50 {% if row.rank <= 4 %}bg-emerald-50/40{% elif row.rank >= 18 %}bg-red-50/40{% endif %}">
             <td class="px-4 py-3 font-bold text-slate-600">{{ row.rank }}</td>
             <td class="px-4 py-3">
-              <a href="{% url 'team_detail' row.team.pk %}" class="font-semibold text-slate-900 hover:text-emerald-600">
-                {{ row.team.name }}
-              </a>
+              <div class="flex items-center gap-2.5">
+                {% team_logo row.team 26 %}
+                <a href="{% url 'team_detail' row.team.pk %}" class="font-semibold text-slate-900 hover:text-emerald-600">
+                  {{ row.team.name }}
+                </a>
+              </div>
             </td>
             <td class="px-4 py-3 text-center">{{ row.played }}</td>
             <td class="px-4 py-3 text-center text-slate-500">{{ row.remaining }}</td>

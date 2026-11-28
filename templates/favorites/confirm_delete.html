@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load team_tags %}
 {% block title %}Supprimer {{ favorite.team.name }}{% endblock %}
 
 {% block content %}
@@ -7,7 +8,7 @@
     <div class="card border-danger">
       <div class="card-body">
         <h4 class="card-title text-danger">Confirmer la suppression</h4>
-        <p>Voulez-vous vraiment retirer <strong>{{ favorite.team.name }}</strong> de vos équipes favorites ?</p>
+        <p class="inline-flex items-center gap-2">Voulez-vous vraiment retirer {% team_logo favorite.team 28 %}<strong>{{ favorite.team.name }}</strong> de vos équipes favorites ?</p>
         <form method="post">
           {% csrf_token %}
           <button type="submit" class="btn btn-danger">Oui, supprimer</button>

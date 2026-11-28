@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load team_tags %}
 {% block title %}Comparer deux équipes — Football AI{% endblock %}
 
 {% block content %}
@@ -7,7 +8,9 @@
     <h1 class="text-2xl font-bold text-slate-900 mb-4">Comparateur d'Équipes (Radar + Profils)</h1>
     <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
       <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">Équipe A</label>
+        <label class="block text-sm font-medium text-slate-700 mb-1">
+          <span class="inline-flex items-center gap-2">Équipe A {% team_logo team_a 20 %}</span>
+        </label>
         <select name="team_a" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
           {% for t in teams %}
             <option value="{{ t.pk }}" {% if team_a and t.pk == team_a.pk %}selected{% endif %}>{{ t.name }}</option>
@@ -15,7 +18,9 @@
         </select>
       </div>
       <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">Équipe B</label>
+        <label class="block text-sm font-medium text-slate-700 mb-1">
+          <span class="inline-flex items-center gap-2">Équipe B {% team_logo team_b 20 %}</span>
+        </label>
         <select name="team_b" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
           {% for t in teams %}
             <option value="{{ t.pk }}" {% if team_b and t.pk == team_b.pk %}selected{% endif %}>{{ t.name }}</option>
@@ -37,9 +42,13 @@
       <table class="w-full text-sm">
         <thead>
           <tr class="border-b border-slate-200 text-xs uppercase text-slate-500">
-            <th class="py-2 text-left text-emerald-700">{{ team_a.name }}</th>
+            <th class="py-2 text-left text-emerald-700">
+              <span class="inline-flex items-center gap-2">{% team_logo team_a 24 %}{{ team_a.name }}</span>
+            </th>
             <th class="py-2 text-center">Métrique</th>
-            <th class="py-2 text-right text-blue-700">{{ team_b.name }}</th>
+            <th class="py-2 text-right text-blue-700">
+              <span class="inline-flex items-center gap-2 justify-end">{{ team_b.name }}{% team_logo team_b 24 %}</span>
+            </th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-100">
@@ -85,6 +94,11 @@
     <!-- Radar Chart -->
     <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col items-center">
       <h2 class="text-lg font-semibold mb-4">Radar Tactique</h2>
+      <div class="flex items-center justify-center gap-8 mb-4 text-sm font-semibold">
+        <span class="inline-flex items-center gap-2">{% team_logo team_a 36 %}{{ team_a.name }}</span>
+        <span class="text-slate-400">vs</span>
+        <span class="inline-flex items-center gap-2">{{ team_b.name }}{% team_logo team_b 36 %}</span>
+      </div>
       <div class="w-full max-w-md">
         <canvas id="teamRadarChart"></canvas>
       </div>

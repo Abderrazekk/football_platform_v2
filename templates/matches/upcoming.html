@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load team_tags %}
 {% block title %}Matchs à venir — Football AI{% endblock %}
 
 {% block content %}
@@ -10,7 +11,15 @@
         <div>
           <span class="text-xs font-semibold uppercase tracking-wide text-emerald-600">{{ f.league }}</span>
           <p class="text-xs text-slate-400 mt-0.5">{{ f.date }}</p>
-          <p class="text-lg font-bold text-slate-900 mt-3">{{ f.home }} <span class="text-slate-400 font-normal">vs</span> {{ f.away }}</p>
+          <div class="flex items-center justify-center gap-3 mt-3">
+            <span class="flex-1 flex items-center justify-end gap-2 text-right text-lg font-bold text-slate-900">
+              {{ f.home }} {% team_logo f.home 32 %}
+            </span>
+            <span class="text-slate-400 font-normal text-sm">vs</span>
+            <span class="flex-1 flex items-center gap-2 text-lg font-bold text-slate-900">
+              {% team_logo f.away 32 %} {{ f.away }}
+            </span>
+          </div>
         </div>
         <a href="{% url 'matches:predict' %}?home={{ f.home|urlencode }}&away={{ f.away|urlencode }}"
            class="mt-4 inline-block text-center w-full py-2 rounded-lg bg-slate-900 hover:bg-emerald-600 text-white text-sm font-semibold transition">
