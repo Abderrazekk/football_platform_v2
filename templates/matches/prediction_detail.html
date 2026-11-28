@@ -1,139 +1,217 @@
-{% extends "base.html" %} {% block title %}Résultat de la prédiction — Football
-AI{% endblock %} {% block content %}
-<div class="max-w-4xl mx-auto space-y-6">
-  <div class="flex items-center justify-between">
-    <h1 class="text-2xl font-bold text-slate-900">
-      {{ prediction.home_team }} vs {{ prediction.away_team }}
-    </h1>
-    <a
-      href="{% url 'matches:predict' %}"
-      class="px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold transition"
-    >
-      ← Nouvelle prédiction
-    </a>
+{% extends "base.html" %}
+{% block title %}{{ prediction.home_team.name }} vs {{ prediction.away_team.name }} — Prédiction & XI Optimal{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-8">
+  <!-- Header -->
+  <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div>
+      <span class="text-xs font-bold uppercase tracking-wider text-emerald-600">
+        Prédiction IA ({{ prediction.model_version }})
+      </span>
+      <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 mt-1">
+        {{ prediction.home_team.name }} <span class="text-slate-400 font-normal">vs</span> {{ prediction.away_team.name }}
+      </h1>
+      <p class="text-xs text-slate-400 mt-1">Générée le {{ prediction.created_at|date:"d/m/Y H:i" }}</p>
+    </div>
+    <div class="flex gap-2">
+      <a href="{% url 'matches:predict' %}"
+         class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition">
+        Nouvelle prédiction
+      </a>
+      <a href="{% url 'matches:history' %}"
+         class="px-4 py-2 rounded-lg border border-slate-300 hover:bg-slate-50 text-sm font-semibold">
+        Historique
+      </a>
+    </div>
   </div>
 
   <!-- 3 Probability Cards -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <div
-      class="bg-white rounded-xl border border-slate-200 p-5 text-center shadow-sm"
-    >
-      <p class="text-xs uppercase tracking-wider text-slate-500">
-        Victoire {{ prediction.home_team }}
-      </p>
-      <p class="text-3xl font-extrabold text-emerald-600 mt-1">
-        {{ prediction.p_home|floatformat:1 }}%
-      </p>
+    <div class="bg-white rounded-xl border border-slate-200 p-5 text-center shadow-sm">
+      <p class="text-xs uppercase tracking-wider text-slate-500">Victoire {{ prediction.home_team.name }}</p>
+      <p class="text-3xl font-extrabold text-emerald-600 mt-1">{{ prediction.p_home|floatformat:1 }}%</p>
     </div>
-    <div
-      class="bg-white rounded-xl border border-slate-200 p-5 text-center shadow-sm"
-    >
+    <div class="bg-white rounded-xl border border-slate-200 p-5 text-center shadow-sm">
       <p class="text-xs uppercase tracking-wider text-slate-500">Match Nul</p>
-      <p class="text-3xl font-extrabold text-amber-500 mt-1">
-        {{ prediction.p_draw|floatformat:1 }}%
-      </p>
+      <p class="text-3xl font-extrabold text-amber-500 mt-1">{{ prediction.p_draw|floatformat:1 }}%</p>
     </div>
-    <div
-      class="bg-white rounded-xl border border-slate-200 p-5 text-center shadow-sm"
-    >
-      <p class="text-xs uppercase tracking-wider text-slate-500">
-        Victoire {{ prediction.away_team }}
-      </p>
-      <p class="text-3xl font-extrabold text-blue-600 mt-1">
-        {{ prediction.p_away|floatformat:1 }}%
-      </p>
+    <div class="bg-white rounded-xl border border-slate-200 p-5 text-center shadow-sm">
+      <p class="text-xs uppercase tracking-wider text-slate-500">Victoire {{ prediction.away_team.name }}</p>
+      <p class="text-3xl font-extrabold text-blue-600 mt-1">{{ prediction.p_away|floatformat:1 }}%</p>
     </div>
   </div>
 
-  <!-- Donut Chart + Verdict -->
+  <!-- PREDICTED BEST XI LINEUP SECTION -->
+  {% if lineups %}
+  <section class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h2 class="text-xl font-bold text-slate-900">Meilleur XI Prédit pour ce Match</h2>
+        <p class="text-sm text-slate-500">
+          Basé sur les performances globales des joueurs, la forme récente et leur historique face à l'adversaire sur toutes les saisons.
+        </p>
+      </div>
+
+      <!-- Interactive Lineup Tabs -->
+      <div class="flex flex-wrap gap-2" id="lineupTabs">
+        <button type="button" data-target="panel-combined"
+                class="lineup-tab px-3.5 py-2 rounded-lg text-xs font-bold bg-emerald-600 text-white transition">
+          XI Combiné ({{ lineups.combined_xi.formation }})
+        </button>
+        <button type="button" data-target="panel-home"
+                class="lineup-tab px-3.5 py-2 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+          {{ prediction.home_team.name }} ({{ lineups.home_xi.formation }})
+        </button>
+        <button type="button" data-target="panel-away"
+                class="lineup-tab px-3.5 py-2 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+          {{ prediction.away_team.name }} ({{ lineups.away_xi.formation }})
+        </button>
+      </div>
+    </div>
+
+    <!-- Panel 1: Combined Match Best XI -->
+    <div id="panel-combined" class="lineup-panel">
+      <div class="flex items-center justify-between text-xs text-slate-600 mb-3 px-1">
+        <span>Formation optimale : <strong>{{ lineups.combined_xi.formation }}</strong></span>
+        <span>Score d'impact prédit : <strong class="text-emerald-700">{{ lineups.combined_xi.total_score }} pts</strong></span>
+      </div>
+      <div class="bg-emerald-800 rounded-2xl p-6 text-white shadow-inner space-y-5">
+        {% for pos_code, group in lineups.combined_xi.by_pos.items %}
+          <div class="flex flex-wrap justify-center gap-3">
+            {% for item in group %}
+              <div class="bg-white/95 text-slate-900 rounded-xl px-3.5 py-2.5 w-48 text-center shadow">
+                <div class="flex justify-between items-center text-[11px] font-bold mb-1">
+                  <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">{{ pos_code }}</span>
+                  <span class="text-[10px] font-semibold text-slate-500 truncate max-w-[90px]">{{ item.team_name }}</span>
+                  {% if lineups.combined_xi.captain and item.player.pk == lineups.combined_xi.captain.player.pk %}
+                    <span class="px-1.5 py-0.5 rounded bg-amber-400 text-slate-950">★ Star</span>
+                  {% endif %}
+                </div>
+                <a href="{% url 'players:detail' item.player.pk %}" class="font-bold text-sm block truncate hover:text-emerald-600">
+                  {{ item.player.name }}
+                </a>
+                <p class="text-[11px] text-slate-600 mt-0.5 truncate" title="{{ item.badge }}">{{ item.badge }}</p>
+                <p class="text-xs font-extrabold text-emerald-700 mt-1">{{ item.match_score }} xPts</p>
+              </div>
+            {% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Panel 2: Home Team Best XI -->
+    <div id="panel-home" class="lineup-panel hidden">
+      <div class="flex items-center justify-between text-xs text-slate-600 mb-3 px-1">
+        <span>{{ prediction.home_team.name }} (Domicile) — Formation : <strong>{{ lineups.home_xi.formation }}</strong></span>
+        <span>Score d'impact prédit : <strong class="text-emerald-700">{{ lineups.home_xi.total_score }} pts</strong></span>
+      </div>
+      <div class="bg-emerald-800 rounded-2xl p-6 text-white shadow-inner space-y-5">
+        {% for pos_code, group in lineups.home_xi.by_pos.items %}
+          <div class="flex flex-wrap justify-center gap-3">
+            {% for item in group %}
+              <div class="bg-white/95 text-slate-900 rounded-xl px-3.5 py-2.5 w-48 text-center shadow">
+                <div class="flex justify-between items-center text-[11px] font-bold mb-1">
+                  <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">{{ pos_code }}</span>
+                  {% if lineups.home_xi.captain and item.player.pk == lineups.home_xi.captain.player.pk %}
+                    <span class="px-1.5 py-0.5 rounded bg-amber-400 text-slate-950">C</span>
+                  {% endif %}
+                </div>
+                <a href="{% url 'players:detail' item.player.pk %}" class="font-bold text-sm block truncate hover:text-emerald-600">
+                  {{ item.player.name }}
+                </a>
+                <p class="text-[11px] text-slate-600 mt-0.5 truncate" title="{{ item.badge }}">{{ item.badge }}</p>
+                <p class="text-xs font-extrabold text-emerald-700 mt-1">{{ item.match_score }} xPts</p>
+              </div>
+            {% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Panel 3: Away Team Best XI -->
+    <div id="panel-away" class="lineup-panel hidden">
+      <div class="flex items-center justify-between text-xs text-slate-600 mb-3 px-1">
+        <span>{{ prediction.away_team.name }} (Extérieur) — Formation : <strong>{{ lineups.away_xi.formation }}</strong></span>
+        <span>Score d'impact prédit : <strong class="text-blue-700">{{ lineups.away_xi.total_score }} pts</strong></span>
+      </div>
+      <div class="bg-slate-800 rounded-2xl p-6 text-white shadow-inner space-y-5">
+        {% for pos_code, group in lineups.away_xi.by_pos.items %}
+          <div class="flex flex-wrap justify-center gap-3">
+            {% for item in group %}
+              <div class="bg-white/95 text-slate-900 rounded-xl px-3.5 py-2.5 w-48 text-center shadow">
+                <div class="flex justify-between items-center text-[11px] font-bold mb-1">
+                  <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">{{ pos_code }}</span>
+                  {% if lineups.away_xi.captain and item.player.pk == lineups.away_xi.captain.player.pk %}
+                    <span class="px-1.5 py-0.5 rounded bg-amber-400 text-slate-950">C</span>
+                  {% endif %}
+                </div>
+                <a href="{% url 'players:detail' item.player.pk %}" class="font-bold text-sm block truncate hover:text-blue-600">
+                  {{ item.player.name }}
+                </a>
+                <p class="text-[11px] text-slate-600 mt-0.5 truncate" title="{{ item.badge }}">{{ item.badge }}</p>
+                <p class="text-xs font-extrabold text-blue-700 mt-1">{{ item.match_score }} xPts</p>
+              </div>
+            {% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- Chart.js Donut + Key Factors -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <div
-      class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col items-center"
-    >
+    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col items-center">
       <h2 class="text-lg font-semibold mb-4">Répartition des probabilités</h2>
       <div class="w-60 h-60">
-        <canvas id="resultDonutChart"></canvas>
+        <canvas id="probDonutChart"></canvas>
       </div>
     </div>
 
-    <div
-      class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col justify-center space-y-4"
-    >
-      <h2 class="text-lg font-semibold">Verdict du modèle</h2>
-      <div>
-        <span
-          class="px-3 py-1.5 rounded-full text-sm font-bold {% if prediction.predicted_result == 'H' %}bg-emerald-100 text-emerald-800 {% elif prediction.predicted_result == 'D' %}bg-amber-100 text-amber-800 {% else %}bg-blue-100 text-blue-800{% endif %}"
-        >
-          {{ prediction.get_predicted_result_display }}
-        </span>
-      </div>
-      <p class="text-xs text-slate-400">
-        Modèle : {{ prediction.model_version }}
-      </p>
-      <p class="text-sm text-slate-500">
-        Prédiction enregistrée dans votre
-        <a
-          href="{% url 'matches:history' %}"
-          class="text-emerald-600 font-semibold hover:underline"
-          >historique</a
-        >.
-      </p>
+    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-4">
+      <h2 class="text-lg font-semibold">Facteurs clés du match</h2>
+      <ul class="space-y-2 text-sm text-slate-700">
+        {% for factor in key_factors %}
+          <li class="flex items-start gap-2">
+            <span class="text-emerald-500 font-bold">•</span>
+            <span>{{ factor }}</span>
+          </li>
+        {% empty %}
+          <li class="text-slate-400">Aucun facteur détaillé disponible.</li>
+        {% endfor %}
+      </ul>
     </div>
   </div>
-
-  <!-- Key Factors -->
-  {% if key_factors %}
-  <div
-    class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-3"
-  >
-    <h2 class="text-lg font-semibold">Facteurs clés</h2>
-    <ul class="space-y-2 text-sm text-slate-700">
-      {% for factor in key_factors %}
-      <li class="flex items-start gap-2">
-        <span class="text-emerald-500 font-bold">•</span>
-        <span>{{ factor }}</span>
-      </li>
-      {% endfor %}
-    </ul>
-  </div>
-  {% endif %}
 
   <!-- Recent Form & H2H -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
     <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-      <h2 class="text-lg font-semibold mb-3">
-        Forme récente (5 derniers matchs)
-      </h2>
+      <h2 class="text-lg font-semibold mb-3">Forme récente (5 derniers matchs)</h2>
       <div class="space-y-3 text-sm">
         <div class="flex items-center justify-between">
-          <span class="font-medium"
-            >{{ prediction.home_team }} ({{ home_form.ppg }} PPG)</span
-          >
+          <span class="font-medium">{{ prediction.home_team.name }} ({{ home_form.ppg }} PPG)</span>
           <div class="flex gap-1">
             {% for r in home_form.results %}
-            <span
-              class="w-6 h-6 rounded flex items-center justify-center text-xs font-bold text-white {% if r == 'W' %}bg-emerald-500{% elif r == 'D' %}bg-amber-400{% else %}bg-red-500{% endif %}"
-            >
-              {{ r }}
-            </span>
+              <span class="w-6 h-6 rounded flex items-center justify-center text-xs font-bold text-white
+                {% if r == 'W' %}bg-emerald-500{% elif r == 'D' %}bg-amber-400{% else %}bg-red-500{% endif %}">
+                {{ r }}
+              </span>
             {% empty %}
-            <span class="text-slate-400">—</span>
+              <span class="text-slate-400">—</span>
             {% endfor %}
           </div>
         </div>
         <div class="flex items-center justify-between">
-          <span class="font-medium"
-            >{{ prediction.away_team }} ({{ away_form.ppg }} PPG)</span
-          >
+          <span class="font-medium">{{ prediction.away_team.name }} ({{ away_form.ppg }} PPG)</span>
           <div class="flex gap-1">
             {% for r in away_form.results %}
-            <span
-              class="w-6 h-6 rounded flex items-center justify-center text-xs font-bold text-white {% if r == 'W' %}bg-emerald-500{% elif r == 'D' %}bg-amber-400{% else %}bg-red-500{% endif %}"
-            >
-              {{ r }}
-            </span>
+              <span class="w-6 h-6 rounded flex items-center justify-center text-xs font-bold text-white
+                {% if r == 'W' %}bg-emerald-500{% elif r == 'D' %}bg-amber-400{% else %}bg-red-500{% endif %}">
+                {{ r }}
+              </span>
             {% empty %}
-            <span class="text-slate-400">—</span>
+              <span class="text-slate-400">—</span>
             {% endfor %}
           </div>
         </div>
@@ -141,45 +219,36 @@ AI{% endblock %} {% block content %}
     </div>
 
     <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-      <h2 class="text-lg font-semibold mb-1">Confrontations directes (H2H)</h2>
-      <p class="text-xs text-slate-500 mb-3">
-        {{ h2h.played }} matchs — {{ prediction.home_team }} : {{
-        h2h.team_a_wins }}V · {{ h2h.draws }}N · {{ prediction.away_team }} : {{
-        h2h.team_b_wins }}V
-      </p>
+      <h2 class="text-lg font-semibold mb-3">
+        Confrontations directes ({{ h2h.team_a_wins }}V - {{ h2h.draws }}N - {{ h2h.team_b_wins }}D)
+      </h2>
       <ul class="divide-y divide-slate-100 text-sm">
-        {% for match in h2h.recent %}
-        <li class="py-2 flex justify-between">
-          <span
-            >{{ match.home }} <strong>{{ match.score }}</strong> {{ match.away
-            }}</span
-          >
-          <span class="text-slate-400 text-xs">{{ match.date }}</span>
-        </li>
+        {% for m in h2h.recent %}
+          <li class="py-2 flex justify-between">
+            <span>{{ m.home }} <strong>{{ m.score }}</strong> {{ m.away }}</span>
+            <span class="text-slate-400 text-xs">{{ m.date }}</span>
+          </li>
         {% empty %}
-        <li class="text-slate-400">
-          Aucune confrontation récente enregistrée.
-        </li>
+          <li class="text-slate-400">Aucune confrontation récente enregistrée.</li>
         {% endfor %}
       </ul>
     </div>
   </div>
 </div>
-{% endblock %} {% block extra_js %}
+{% endblock %}
+
+{% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script>
-  const ctx = document.getElementById('resultDonutChart');
+  // Probability Donut Chart
+  const ctx = document.getElementById('probDonutChart');
   if (ctx) {
     new Chart(ctx, {
       type: 'doughnut',
       data: {
-        labels: ['{{ prediction.home_team|escapejs }}', 'Nul', '{{ prediction.away_team|escapejs }}'],
+        labels: ['{{ prediction.home_team.name|escapejs }}', 'Nul', '{{ prediction.away_team.name|escapejs }}'],
         datasets: [{
-          data: [
-            {{ prediction.p_home|stringformat:"f" }},
-            {{ prediction.p_draw|stringformat:"f" }},
-            {{ prediction.p_away|stringformat:"f" }}
-          ],
+          data: [{{ prediction.p_home|stringformat:"f" }}, {{ prediction.p_draw|stringformat:"f" }}, {{ prediction.p_away|stringformat:"f" }}],
           backgroundColor: ['#10b981', '#f59e0b', '#2563eb'],
           borderWidth: 0
         }]
@@ -190,5 +259,22 @@ AI{% endblock %} {% block content %}
       }
     });
   }
+
+  // Interactive Lineup Tabs
+  document.querySelectorAll('.lineup-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.lineup-tab').forEach(b => {
+        b.classList.remove('bg-emerald-600', 'text-white');
+        b.classList.add('bg-slate-100', 'text-slate-700');
+      });
+      btn.classList.remove('bg-slate-100', 'text-slate-700');
+      btn.classList.add('bg-emerald-600', 'text-white');
+
+      const targetId = btn.getAttribute('data-target');
+      document.querySelectorAll('.lineup-panel').forEach(panel => {
+        panel.classList.toggle('hidden', panel.id !== targetId);
+      });
+    });
+  });
 </script>
 {% endblock %}

@@ -114,3 +114,56 @@ class PlayersModuleTests(TestCase):
         )
         self.assertEqual(res_stars.status_code, 200)
         self.assertContains(res_stars, "Note on Individual Match Variance")
+        
+@patch("apps.players.services._load_player_model", return_value=_mock_bundle(6.0))
+@patch(
+        "apps.players.services._get_player_vs_opponent_index",
+        return_value={
+            ("bukayo saka", "Chelsea"): {
+                "matches": 6,
+                "minutes": 520,
+                "total_points": 54,
+                "avg_points": 9.0,
+                "goals": 4,
+                "assists": 2,
+                "clean_sheets": 2,
+                "avg_bps": 34.0,
+            }
+        },
+    )
+def test_predict_match_best_lineups_with_h2h(self, _mock_vs, _mock_model):
+        from apps.players.services import predict_match_best_lineups
+
+        # Populate a full 11-player squad for Arsenal (1 GK, 4 DEF, 4 MID, 2 FWD)
+        squad_specs = [
+            ("david raya", "David Raya", "GK"),
+            ("william saliba", "William Saliba", "DEF"),
+            ("gabriel magalhaes", "Gabriel Magalhaes", "DEF"),
+            ("ben white", "Ben White", "DEF"),
+            ("jurrien timber", "Jurrien Timber", "DEF"),
+            ("martin odegaard", "Martin Odegaard", "MID"),
+            ("declan rice", "Declan Rice", "MID"),
+            ("gabriel martinelli", "Gabriel Martinelli", "MID"),
+            ("kai havertz", "Kai Havertz", "FWD"),
+            ("leandro trossard", "Leandro Trossard", "FWD"),
+        ]
+        for key, name, pos in squad_specs:
+            p = Player.objects.create(
+                player_key=key, name=name, position=pos, team=self.arsenal, last_season="2026-27"
+            )
+            PlayerGameweekStats.objects.create(
+                player=p, season=self.season, round_num=1, minutes=90, total_points=5
+            )
+
+        lineups = predict_match_best_lineups(self.arsenal, self.chelsea)
+        home_xi = lineups["home_xi"]
+        self.assertEqual(len(home_xi["players"]), 11)
+        self.assertEqual(len(home_xi["by_pos"]["GK"]), 1)
+        self.assertTrue(3 <= len(home_xi["by_pos"]["DEF"]) <= 5)
+        self.assertTrue(2 <= len(home_xi["by_pos"]["MID"]) <= 5)
+        self.assertTrue(1 <= len(home_xi["by_pos"]["FWD"]) <= 3)
+
+        # Saka's strong H2H record vs Chelsea (9.0 avg pts) boosts his match_score above 6.0
+        saka_entry = next(x for x in home_xi["players"] if x["player"].pk == self.saka.pk)
+        self.assertGreater(saka_entry["match_score"], 6.5)
+        self.assertIn("4B, 2PD", saka_entry["badge"])    
