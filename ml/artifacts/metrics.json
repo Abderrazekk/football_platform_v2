@@ -286,5 +286,53 @@
         "top3_star_hit_rate": 0.2733
       }
     ]
+  },
+  "season_regression": {
+    "evaluated_at_utc": "2026-11-28T13:24:10.903001+00:00",
+    "best_model": "linear_regression",
+    "mae": 36.1739,
+    "rmse": 45.3204,
+    "r2": 0.2659,
+    "best_ridge_alpha": 100.0,
+    "best_lasso_alpha": 1.0,
+    "lasso_zeroed_features": [
+      "prev_goals",
+      "prev_assists",
+      "prev_games_played",
+      "prev_points_per_90",
+      "prev_goal_involvements_per_90",
+      "pos_DEF",
+      "pos_MID"
+    ],
+    "model_comparison": [
+      {
+        "model": "linear_regression",
+        "mae": 36.1739,
+        "rmse": 45.3204,
+        "r2": 0.2659,
+        "alpha": ""
+      },
+      {
+        "model": "ridge",
+        "mae": 36.4265,
+        "rmse": 45.6915,
+        "r2": 0.2538,
+        "alpha": 100.0
+      },
+      {
+        "model": "lasso",
+        "mae": 36.5028,
+        "rmse": 45.7827,
+        "r2": 0.2508,
+        "alpha": 1.0
+      },
+      {
+        "model": "prev_season_baseline",
+        "mae": 38.2703,
+        "rmse": 50.9672,
+        "r2": 0.0715,
+        "alpha": ""
+      }
+    ]
   }
 }
